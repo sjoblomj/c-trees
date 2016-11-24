@@ -1,6 +1,6 @@
 #!/bin/bash
 
-COMPILE="gcc tests/test.c src/vnrfile.c src/tree.c `pkg-config --cflags --libs gtk+-2.0` -o test"
+COMPILE="./compile.sh"
 TEST="./test"
 SUCCESS_ICON="icons/success.svg"  # https://commons.wikimedia.org/wiki/File:CrystalClearActionApply.svg
 WARNING_ICON="icons/warning.svg"  # https://commons.wikimedia.org/wiki/File:Crystal_Clear_app_error.svg

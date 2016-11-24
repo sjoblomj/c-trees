@@ -27,6 +27,7 @@
 
 #include "../src/tree.h"
 #include "../src/vnrfile.h"
+#include "tree-utils.h"
 
 #define KRED  "\x1B[31m"
 #define KGRN  "\x1B[32m"
@@ -36,18 +37,12 @@
 #define TESTDIR "c-trees-tests"
 
 typedef enum {SINGLE_FILE, SINGLE_FOLDER, VALID_LIST, SEMI_INVALID_LIST, COMPLETELY_INVALID_LIST} inputtype;
-typedef enum {RIGHT, LEFT} Direction;
-typedef enum {CONTINUE, RETREAT} Course;
 
 int errors = 0;
 char* output;
-int output_offset = 0;
 
-void print_tree(GNode *tree, char* tree_structure_base);
-void assertEquals(char* description, char* expected, char* actual);
-void assertTreeIsNull(char* description, GNode* tree);
 void assertErrorIsNull(GError* error);
-void assertErrorIsNotNull(GError* error);
+
 
 
 void destroy_node(GNode *node, gpointer data) {
@@ -58,159 +53,6 @@ void free_tree(GNode *tree) {
     g_node_children_foreach(tree, G_TRAVERSE_ALL, destroy_node, NULL);
     g_node_destroy(tree);
 }
-
-
-char* get_file_name(GNode* node) {
-    if(node->data != NULL) {
-        VnrFile* vnrfile = node->data;
-        return vnrfile->display_name;
-    }
-    return "<ROOT>";
-}
-
-gboolean is_leaf(GNode *node) {
-    VnrFile* vnrfile = node->data;
-    return vnrfile != NULL && !vnrfile->is_directory; // A leaf in the tree can represent an empty directory. Otherwise we could do G_NODE_IS_LEAF(node)
-}
-
-gboolean has_children(GNode *tree) {
-    return g_node_n_children(tree) > 0;
-}
-
-gboolean has_more_siblings(GNode *tree, Direction direction) {
-    return tree != (direction == RIGHT ? g_node_last_sibling(tree) : g_node_first_sibling(tree));
-}
-
-char* create_string(char* base_str, char* append_str) {
-    char* new_str = malloc(strlen(base_str) + strlen(append_str) + 1);
-    strcpy(new_str, base_str);
-    strcat(new_str, append_str);
-    return new_str;
-}
-
-
-void print_node(GNode *node, gpointer data) {
-    if(is_leaf(node)) {
-        char* append_str = has_more_siblings(node, RIGHT) ? "├─ " : "└─ ";
-        char* tree_structure = create_string((char*) data, append_str);
-
-        output_offset += snprintf(output + output_offset, OUTPUTSIZE - output_offset, "%s%s\n", tree_structure, get_file_name(node));
-
-        free(tree_structure);
-
-    } else {
-        char* tree_structure = create_string((char*) data, "");
-        print_tree(node, tree_structure);
-        free(tree_structure);
-    }
-}
-
-
-void print_tree(GNode *tree, char* tree_structure_base) {
-
-    char* tree_structure_end = "";
-    if (!G_NODE_IS_ROOT(tree)) {
-        if (has_more_siblings(tree, RIGHT)) {
-            tree_structure_end = has_children(tree) ? "├─┬" : "├──";
-        } else {
-            tree_structure_end = has_children(tree) ? "└─┬" : "└──";
-        }
-    }
-
-    output_offset += snprintf(output + output_offset, OUTPUTSIZE - output_offset, "%s%s" KWHT "%s  (%i children)" RESET "\n",
-                              tree_structure_base, tree_structure_end, get_file_name(tree), g_node_n_children(tree));
-
-    char* append_str = (G_NODE_IS_ROOT(tree) ? "" : (has_more_siblings(tree, RIGHT) ? "│ " : "  "));
-    char* tree_structure = create_string(tree_structure_base, append_str);
-
-    g_node_children_foreach(tree,
-                            G_TRAVERSE_ALL,
-                            print_node,
-                            tree_structure);
-
-    free(tree_structure);
-}
-
-GNode* get_prev_or_next(GNode* tree, Direction direction) {
-    return direction == RIGHT ? g_node_next_sibling(tree) : g_node_prev_sibling(tree);
-}
-GNode* get_first_or_last(GNode* tree, Direction direction) {
-    return direction == RIGHT ? g_node_first_child(tree) : g_node_last_child(tree);
-}
-
-GNode* recursively_find_prev_or_next(GNode *tree, GNode *original_node, Direction direction, Course course) {
-
-    if(tree == NULL || tree == original_node) {
-        return original_node;
-    }
-    if(is_leaf(tree)) {
-        return tree;
-    }
-
-    // It is a directory.
-
-    GNode *node;
-    Course new_course = CONTINUE;
-    if(G_NODE_IS_ROOT(tree)) {
-        node = get_first_or_last(tree, direction);
-
-    } else if(has_children(tree) && course != RETREAT) {
-        node = get_first_or_last(tree, direction);
-
-    } else if(has_more_siblings(tree, direction)) {
-        node = get_prev_or_next(tree, direction);
-
-    } else {
-        node = tree->parent;
-        new_course = RETREAT;
-    }
-    return recursively_find_prev_or_next(node, original_node, direction, new_course);
-}
-
-GNode* get_prev_or_next_in_tree(GNode *tree, Direction direction) {
-
-    if(tree == NULL) {
-        return NULL;
-    }
-    GNode *next = tree;
-    Course course = CONTINUE;
-
-    if(G_NODE_IS_ROOT(tree)) {
-        next = get_first_or_last(tree, direction);
-
-    } else if(is_leaf(tree) && has_more_siblings(tree, direction)) {
-        next = get_prev_or_next(tree, direction);
-
-    } else if(is_leaf(tree) && !has_more_siblings(tree, direction)) {
-        next = tree->parent;
-        course = RETREAT;
-
-    } else if(!is_leaf(tree) && has_children(tree)) {
-        next = get_first_or_last(tree, direction);
-
-    } else if(!is_leaf(tree) && has_more_siblings(tree, direction)) {
-        next = get_prev_or_next(tree, direction);
-
-    } else if(!is_leaf(tree) && !has_children(tree) && !has_more_siblings(tree, direction)) {
-        next = tree->parent;
-        course = RETREAT;
-    }
-
-    return recursively_find_prev_or_next(next, tree, direction, course);
-}
-
-GNode* get_next_in_tree(GNode *tree) {
-    return get_prev_or_next_in_tree(tree, RIGHT);
-}
-
-GNode* get_prev_in_tree(GNode *tree) {
-    return get_prev_or_next_in_tree(tree, LEFT);
-}
-
-
-
-///////////////////////////////
-
 
 
 GNode* single_file(gboolean include_hidden, gboolean recursive) {
@@ -298,7 +140,8 @@ char* get_printed_tree(inputtype type, gboolean include_hidden, gboolean recursi
     } else {
         tree = uri_list(include_hidden, recursive);
     }
-    print_tree(tree, "");
+
+    pretty_print_tree(tree, output);
 
     free_tree(tree);
     return output;
@@ -420,7 +263,6 @@ int remove_directory(const char *path) {
 
 void before() {
     output = (char*) malloc(sizeof(char) * OUTPUTSIZE);
-    output_offset = 0;
     create_file_structure();
 }
 
@@ -485,6 +327,8 @@ void assertErrorIsNotNull(GError* error) {
 //////////////////
 
 void test_singleFile_NonExistantFile() {
+    before();
+
     char *path = "non_existant_file.jpg";
     GError *error = NULL;
 
@@ -500,18 +344,26 @@ void test_singleFile_NonExistantFile() {
     assertTreeIsNull("Non existant file ─ Include hidden files: T ─ Recursive: T", vnr_file_load_single_uri(path, TRUE,  TRUE,  &error));
     assertErrorIsNotNull(error);
     g_error_free(error);
+
+    after();
 }
 
 void test_singleFile_DontIncludeHidden_NotRecursive() {
+    before();
+
     char* expected = KWHT TESTDIR "  (2 children)" RESET "\n\
 ├─ bepa.png\n\
 └─ cepa.jpg\n\
 ";
 
     assertEquals("Single file ─ Include hidden files: F ─ Recursive: F", expected, get_printed_tree(SINGLE_FILE, FALSE, FALSE));
+
+    after();
 }
 
 void test_singleFile_DontIncludeHidden_Recursive() {
+    before();
+
     char* expected = KWHT TESTDIR "  (4 children)" RESET "\n\
 ├─ bepa.png\n\
 ├─ cepa.jpg\n\
@@ -536,9 +388,13 @@ void test_singleFile_DontIncludeHidden_Recursive() {
 ";
 
     assertEquals("Single file ─ Include hidden files: F ─ Recursive: T", expected, get_printed_tree(SINGLE_FILE, FALSE, TRUE));
+
+    after();
 }
 
 void test_singleFile_IncludeHidden_NotRecursive() {
+    before();
+
     char* expected = KWHT TESTDIR "  (4 children)" RESET "\n\
 ├─ .apa.png\n\
 ├─ .depa.gif\n\
@@ -547,9 +403,13 @@ void test_singleFile_IncludeHidden_NotRecursive() {
 ";
 
     assertEquals("Single file ─ Include hidden files: T ─ Recursive: F", expected, get_printed_tree(SINGLE_FILE, TRUE, FALSE));
+
+    after();
 }
 
 void test_singleFile_IncludeHidden_Recursive() {
+    before();
+
     char* expected = KWHT TESTDIR "  (6 children)" RESET "\n\
 ├─ .apa.png\n\
 ├─ .depa.gif\n\
@@ -579,20 +439,28 @@ void test_singleFile_IncludeHidden_Recursive() {
 ";
 
     assertEquals("Single file ─ Include hidden files: T ─ Recursive: T", expected, get_printed_tree(SINGLE_FILE, TRUE, TRUE));
+
+    after();
 }
 
 
 
 void test_singleFolder_DontIncludeHidden_NotRecursive() {
+    before();
+
     char* expected = KWHT TESTDIR "  (2 children)" RESET "\n\
 ├─ bepa.png\n\
 └─ cepa.jpg\n\
 ";
 
     assertEquals("Single folder ─ Include hidden files: F ─ Recursive: F", expected, get_printed_tree(SINGLE_FOLDER, FALSE, FALSE));
+
+    after();
 }
 
 void test_singleFolder_DontIncludeHidden_Recursive() {
+    before();
+
     char* expected = KWHT TESTDIR "  (4 children)" RESET "\n\
 ├─ bepa.png\n\
 ├─ cepa.jpg\n\
@@ -617,9 +485,13 @@ void test_singleFolder_DontIncludeHidden_Recursive() {
 ";
 
     assertEquals("Single folder ─ Include hidden files: F ─ Recursive: T", expected, get_printed_tree(SINGLE_FOLDER, FALSE, TRUE));
+
+    after();
 }
 
 void test_singleFolder_IncludeHidden_NotRecursive() {
+    before();
+
     char* expected = KWHT TESTDIR "  (4 children)" RESET "\n\
 ├─ .apa.png\n\
 ├─ .depa.gif\n\
@@ -628,9 +500,13 @@ void test_singleFolder_IncludeHidden_NotRecursive() {
 ";
 
     assertEquals("Single folder ─ Include hidden files: T ─ Recursive: F", expected, get_printed_tree(SINGLE_FOLDER, TRUE, FALSE));
+
+    after();
 }
 
 void test_singleFolder_IncludeHidden_Recursive() {
+    before();
+
     char* expected = KWHT TESTDIR "  (6 children)" RESET "\n\
 ├─ .apa.png\n\
 ├─ .depa.gif\n\
@@ -660,11 +536,15 @@ void test_singleFolder_IncludeHidden_Recursive() {
 ";
 
     assertEquals("Single folder ─ Include hidden files: T ─ Recursive: T", expected, get_printed_tree(SINGLE_FOLDER, TRUE, TRUE));
+
+    after();
 }
 
 
 
 void test_uriList_DontIncludeHidden_NotRecursive() {
+    before();
+
     char* expected = KWHT "<ROOT>  (3 children)" RESET "\n\
 ├─ bepa.png\n\
 ├─ cepa.jpg\n\
@@ -679,9 +559,13 @@ void test_uriList_DontIncludeHidden_NotRecursive() {
     assertEquals("Uri List ─ Some invalid files. Include hidden files: F ─ Recursive: F", expected, get_printed_tree(SEMI_INVALID_LIST, FALSE, FALSE));
     after(); before();
     assertEquals("Uri List ─ Only invalid files. Include hidden files: F ─ Recursive: F", KWHT "<ROOT>  (0 children)" RESET "\n", get_printed_tree(COMPLETELY_INVALID_LIST, FALSE, FALSE));
+
+    after();
 }
 
 void test_uriList_DontIncludeHidden_Recursive() {
+    before();
+
     char* expected = KWHT "<ROOT>  (3 children)" RESET "\n\
 ├─ bepa.png\n\
 ├─ cepa.jpg\n\
@@ -708,9 +592,13 @@ void test_uriList_DontIncludeHidden_Recursive() {
     assertEquals("Uri List ─ Some invalid files. Include hidden files: F ─ Recursive: T", expected, get_printed_tree(SEMI_INVALID_LIST, FALSE, TRUE));
     after(); before();
     assertEquals("Uri List ─ Only invalid files. Include hidden files: F ─ Recursive: T", KWHT "<ROOT>  (0 children)" RESET "\n", get_printed_tree(COMPLETELY_INVALID_LIST, FALSE, TRUE));
+
+    after();
 }
 
 void test_uriList_IncludeHidden_NotRecursive() {
+    before();
+
     char* expected = KWHT "<ROOT>  (5 children)" RESET "\n\
 ├─ .apa.png\n\
 ├─ .depa.gif\n\
@@ -727,9 +615,13 @@ void test_uriList_IncludeHidden_NotRecursive() {
     assertEquals("Uri List ─ Some invalid files. Include hidden files: T ─ Recursive: F", expected, get_printed_tree(SEMI_INVALID_LIST, TRUE, FALSE));
     after(); before();
     assertEquals("Uri List ─ Only invalid files. Include hidden files: T ─ Recursive: F", KWHT "<ROOT>  (0 children)" RESET "\n", get_printed_tree(COMPLETELY_INVALID_LIST, TRUE, FALSE));
+
+    after();
 }
 
 void test_uriList_IncludeHidden_Recursive() {
+    before();
+
     char* expected = KWHT "<ROOT>  (5 children)" RESET "\n\
 ├─ .apa.png\n\
 ├─ .depa.gif\n\
@@ -758,28 +650,42 @@ void test_uriList_IncludeHidden_Recursive() {
     assertEquals("Uri List ─ Some invalid files. Include hidden files: T ─ Recursive: T", expected, get_printed_tree(SEMI_INVALID_LIST, TRUE, TRUE));
     after(); before();
     assertEquals("Uri List ─ Only invalid files. Include hidden files: T ─ Recursive: T", KWHT "<ROOT>  (0 children)" RESET "\n", get_printed_tree(COMPLETELY_INVALID_LIST, TRUE, TRUE));
+
+    after();
 }
 
 
 
 void test_getNextInTree_NullIn() {
+    before();
     assertTreeIsNull("Get Next ─ Input is NULL", get_next_in_tree(NULL));
+    after();
 }
 
 void test_getNextInTree_RootWithoutElements() {
+    before();
+
     GNode *tree = g_node_new(NULL);
     assertTreesEqual("Get Next ─ Input is Root without elements", tree, get_next_in_tree(tree));
     free_tree(tree);
+
+    after();
 }
 
 void test_getNextInTree_RootWithOnlyDir() {
+    before();
+
     VnrFile* vnrfile = vnr_file_create_new("filepath", "display_name", TRUE);
     GNode *tree = g_node_new(vnrfile);
     assertTreesEqual("Get Next ─ Input is Root with only one dir", tree, get_next_in_tree(tree));
     free_tree(tree);
+
+    after();
 }
 
 void test_getNextInTree_SingleFolder_RootWithOnlyThreeDirs() {
+    // No before!
+
     create_dir(TESTDIR);
     create_dir(TESTDIR "/apa");
     create_dir(TESTDIR "/bepa");
@@ -789,9 +695,13 @@ void test_getNextInTree_SingleFolder_RootWithOnlyThreeDirs() {
 
     assertTreesEqual("Get Next ─ Single folder ─ Input is Root with only three dirs", tree, get_next_in_tree(tree));
     free_tree(tree);
+
+    after();
 }
 
 void test_getNextInTree_UriList_RootWithOnlyThreeDirs() {
+    // No before!
+
     create_dir(TESTDIR);
     create_dir(TESTDIR "/apa");
     create_dir(TESTDIR "/bepa");
@@ -807,6 +717,8 @@ void test_getNextInTree_UriList_RootWithOnlyThreeDirs() {
 
     assertTreesEqual("Get Next ─ Uri List ─ Input is Root with only three dirs", tree, get_next_in_tree(tree));
     free_tree(tree);
+
+    after();
 }
 
 GNode* iteration_test(char* description_base, GNode* node, char* expected_file_name) {
@@ -828,12 +740,18 @@ GNode* iteration_test_backward(GNode* node, char* expected_file_name) {
 }
 
 void test_getNextInTree_RootIn() {
+    before();
+
     GNode *tree = single_file(TRUE, TRUE);
     iteration_test_forward(tree, ".apa.png");
     free_tree(tree);
+
+    after();
 }
 
 void test_getNextInTree_FolderIn() {
+    before();
+
     GNode *tree = single_file(TRUE, TRUE);
     GNode *node = tree;
 
@@ -849,11 +767,14 @@ void test_getNextInTree_FolderIn() {
     iteration_test_forward(node, ".three.png");
 
     free_tree(tree);
+
+    after();
 }
 
 
 void test_getNextInTree_Iterate() {
-    VnrFile* vnrfile;
+    before();
+
     GNode *tree = single_file(TRUE, TRUE);
     GNode *node = tree;
 
@@ -908,10 +829,13 @@ void test_getNextInTree_Iterate() {
     node = iteration_test_forward(node, ".depa.gif");
 
     free_tree(tree);
+
+    after();
 }
 
 void test_getPrevInTree_Iterate() {
-    VnrFile* vnrfile;
+    before();
+
     GNode *tree = single_file(TRUE, TRUE);
     GNode *node = tree;
 
@@ -966,10 +890,13 @@ void test_getPrevInTree_Iterate() {
     node = iteration_test_backward(node, "img2.png");
 
     free_tree(tree);
+
+    after();
 }
 
 void test_getNextInTree_UriList_Iterate() {
-    VnrFile* vnrfile;
+    before();
+
     GNode *tree = uri_list(TRUE, TRUE);
     GNode *node = tree;
 
@@ -1016,10 +943,13 @@ void test_getNextInTree_UriList_Iterate() {
     node = iteration_test_forward(node, ".depa.gif");
 
     free_tree(tree);
+
+    after();
 }
 
 void test_getPrevInTree_UriList_Iterate() {
-    VnrFile* vnrfile;
+    before();
+
     GNode *tree = uri_list(TRUE, TRUE);
     GNode *node = tree;
 
@@ -1066,113 +996,43 @@ void test_getPrevInTree_UriList_Iterate() {
     node = iteration_test_backward(node, "img2.png");
 
     free_tree(tree);
+
+    after();
 }
-
-
 
 
 
 int main()
 {
-    before();
     test_singleFile_NonExistantFile();
-    after();
-
-    before();
     test_singleFile_DontIncludeHidden_NotRecursive();
-    after();
-
-    before();
     test_singleFile_DontIncludeHidden_Recursive();
-    after();
-
-    before();
     test_singleFile_IncludeHidden_NotRecursive();
-    after();
-
-    before();
     test_singleFile_IncludeHidden_Recursive();
-    after();
 
-
-    before();
     test_singleFolder_DontIncludeHidden_NotRecursive();
-    after();
-
-    before();
     test_singleFolder_DontIncludeHidden_Recursive();
-    after();
-
-    before();
     test_singleFolder_IncludeHidden_NotRecursive();
-    after();
-
-    before();
     test_singleFolder_IncludeHidden_Recursive();
-    after();
 
-
-    before();
     test_uriList_DontIncludeHidden_NotRecursive();
-    after();
-
-    before();
     test_uriList_DontIncludeHidden_Recursive();
-    after();
-
-    before();
     test_uriList_IncludeHidden_NotRecursive();
-    after();
-
-    before();
     test_uriList_IncludeHidden_Recursive();
-    after();
 
-
-    before();
     test_getNextInTree_NullIn();
-    after();
-
-    before();
     test_getNextInTree_RootWithoutElements();
-    after();
-
-    before();
     test_getNextInTree_RootWithOnlyDir();
-    after();
 
-    // No before!
     test_getNextInTree_SingleFolder_RootWithOnlyThreeDirs();
-    after();
-
-    // No before!
     test_getNextInTree_UriList_RootWithOnlyThreeDirs();
-    after();
 
-    before();
     test_getNextInTree_RootIn();
-    after();
-
-    before();
     test_getNextInTree_FolderIn();
-    after();
-
-    before();
     test_getNextInTree_Iterate();
-    after();
-
-    before();
     test_getPrevInTree_Iterate();
-    after();
-
-    before();
     test_getNextInTree_UriList_Iterate();
-    after();
-
-    before();
     test_getPrevInTree_UriList_Iterate();
-    after();
-
 
     return errors;
 }
