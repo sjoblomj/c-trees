@@ -17,14 +17,9 @@
  * along with c-trees.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __TREE_UTILS_H__
-#define __TREE_UTILS_H__
+#ifndef __MONITOR_TESTS_H__
+#define __MONITOR_TESTS_H__
 
-#define KWHT  "\033[1m\033[37m"
-#define RESET "\x1B[0m"
-#define OUTPUTSIZE 2048
+gboolean file_monitor_tests(gpointer data);
 
-char* create_string(char* base_str, char* append_str);
-void  pretty_print_tree(GNode *tree, char* out);
-
-#endif /* __TREE_UTILS_H__ */
+#endif /* __MONITOR_TESTS_H__ */

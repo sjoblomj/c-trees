@@ -22,50 +22,45 @@
 
 #include <libintl.h>
 #include <glib/gi18n.h>
+#include <stdlib.h>
 #define _(String) gettext (String)
 
 #include <gtk/gtk.h>
 #include <gio/gio.h>
 #include <gdk/gdkpixbuf.h>
 
-G_DEFINE_TYPE (VnrFile, vnr_file, G_TYPE_OBJECT);
+G_DEFINE_TYPE (VnrFile, vnr_file, G_TYPE_OBJECT)
 
 
-static void
-vnr_file_class_init (VnrFileClass *klass)
+static void vnr_file_class_init (VnrFileClass *klass)
 {
 }
 
-static void
-vnr_file_init(VnrFile *file)
-{
+static void vnr_file_init(VnrFile *file) {
     file->display_name = NULL;
 }
 
-VnrFile *
-vnr_file_new()
-{
+VnrFile * vnr_file_new() {
     return VNR_FILE (g_object_new (VNR_TYPE_FILE, NULL));
 }
 
-static void
-vnr_file_set_display_name(VnrFile *vnr_file, char *display_name)
-{
+static void vnr_file_set_display_name(VnrFile *vnr_file, char *display_name) {
     vnr_file->display_name = display_name;
     vnr_file->display_name_collate = g_utf8_collate_key_for_filename(display_name, -1);
 }
 
 
-static void
-vnr_file_set_file_info(VnrFile *vnrfile, char *path, char *display_name, gboolean is_directory)
+static void vnr_file_set_file_info(VnrFile *vnrfile,
+                                   char *path,
+                                   char *display_name,
+                                   gboolean is_directory)
 {
     vnrfile->path = g_strdup(path);
     vnrfile->is_directory = is_directory;
     vnr_file_set_display_name(vnrfile, display_name);
 }
 
-VnrFile*
-vnr_file_create_new(gchar *path,
+VnrFile* vnr_file_create_new(gchar *path,
                     char *display_name,
                     gboolean is_directory)
 {
@@ -75,10 +70,26 @@ vnr_file_create_new(gchar *path,
     return vnrfile;
 }
 
-void
-vnr_file_destroy_data(VnrFile *vnrfile)
-{
+void vnr_file_destroy_data(VnrFile *vnrfile) {
+    if(vnrfile == NULL) {
+        return;
+    }
+    if(vnrfile->context != NULL) {
+        free(vnrfile->context);
+    }
+    if(vnrfile->monitor != NULL) {
+        g_file_monitor_cancel(vnrfile->monitor);
+        g_object_unref(vnrfile->monitor);
+    }
     g_free(vnrfile->path);
     g_free(vnrfile->display_name);
     g_object_unref(vnrfile);
+}
+
+gboolean vnr_file_is_directory(VnrFile* vnrfile) {
+    return vnrfile != NULL && vnrfile->is_directory;
+}
+
+gboolean vnr_file_is_image_file(VnrFile* vnrfile) {
+    return vnrfile != NULL && !vnrfile->is_directory;
 }

@@ -23,6 +23,7 @@
 
 #include <glib.h>
 
+
 GNode*   vnr_file_load_uri_list  (GSList *uri_list,
                                   gboolean include_hidden,
                                   gboolean recursive,
@@ -33,8 +34,15 @@ GNode*   vnr_file_load_single_uri(char *p_uri,
                                   gboolean recursive,
                                   GError **error);
 
-#endif // tree_H
-#ifndef tree_H
-#define tree_H
+void add_node_in_tree(GNode *tree, GNode *node);
+GNode* get_next_in_tree(GNode *tree);
+GNode* get_prev_in_tree(GNode *tree);
+GNode* get_child_in_directory(GNode *tree, char* path);
+
+gboolean is_leaf(GNode *node);
+gboolean has_children(GNode *tree);
+gboolean has_more_siblings(GNode *tree);
+
+void free_tree(GNode *tree);
 
 #endif // tree_H

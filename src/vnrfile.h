@@ -35,15 +35,25 @@ G_BEGIN_DECLS
 typedef struct _VnrFile VnrFile;
 typedef struct _VnrFileClass VnrFileClass;
 
+struct Context {
+    gboolean include_hidden;
+    gboolean include_dirs;
+    gboolean set_file_monitor_for_file;
+    GNode* tree;
+};
+
+
 struct _VnrFile {
     GObject parent;
-    GNode *parent_in_tree;
 
     gchar *display_name;
     const gchar *display_name_collate;
     gchar *path;
 
     gboolean is_directory;
+
+    GFileMonitor *monitor;
+    struct Context *context;
 };
 
 struct _VnrFileClass {
@@ -60,7 +70,9 @@ VnrFile*
 vnr_file_create_new(gchar *path,
                     char *display_name,
                     gboolean is_directory);
-void vnr_file_destroy_data(VnrFile* vnrfile);
+void      vnr_file_destroy_data(VnrFile* vnrfile);
+gboolean vnr_file_is_directory (VnrFile* vnrfile);
+gboolean vnr_file_is_image_file(VnrFile* vnrfile);
 
 
 G_END_DECLS
