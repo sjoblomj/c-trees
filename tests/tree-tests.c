@@ -20,29 +20,43 @@
 
 
 
-void test_singleFile_NonExistantFile() {
+static void test_singleFile_NonExistantFile() {
     before();
 
-    char *path = "non_existant_file.jpg";
+    char *path = NULL;
     GError *error = NULL;
 
-    assert_tree_is_null("Non existant file ─ Include hidden files: F ─ Recursive: F", vnr_file_load_single_uri(path, FALSE, FALSE, &error));
+    assert_tree_is_null("Null file ─ Include hidden files: F ─ Recursive: F", create_tree_from_single_uri(path, FALSE, FALSE, &error));
+    assert_error_is_null(error);
+    g_clear_error(&error);
+    assert_tree_is_null("Null file ─ Include hidden files: F ─ Recursive: T", create_tree_from_single_uri(path, FALSE, TRUE,  &error));
+    assert_error_is_null(error);
+    g_clear_error(&error);
+    assert_tree_is_null("Null file ─ Include hidden files: T ─ Recursive: F", create_tree_from_single_uri(path, TRUE,  FALSE, &error));
+    assert_error_is_null(error);
+    g_clear_error(&error);
+    assert_tree_is_null("Null file ─ Include hidden files: T ─ Recursive: T", create_tree_from_single_uri(path, TRUE,  TRUE,  &error));
+    assert_error_is_null(error);
+    g_clear_error(&error);
+
+    path = "non_existant_file.jpg";
+    assert_tree_is_null("Non existant file ─ Include hidden files: F ─ Recursive: F", create_tree_from_single_uri(path, FALSE, FALSE, &error));
     assert_error_is_not_null(error);
     g_clear_error(&error);
-    assert_tree_is_null("Non existant file ─ Include hidden files: F ─ Recursive: T", vnr_file_load_single_uri(path, FALSE, TRUE,  &error));
+    assert_tree_is_null("Non existant file ─ Include hidden files: F ─ Recursive: T", create_tree_from_single_uri(path, FALSE, TRUE,  &error));
     assert_error_is_not_null(error);
     g_clear_error(&error);
-    assert_tree_is_null("Non existant file ─ Include hidden files: T ─ Recursive: F", vnr_file_load_single_uri(path, TRUE,  FALSE, &error));
+    assert_tree_is_null("Non existant file ─ Include hidden files: T ─ Recursive: F", create_tree_from_single_uri(path, TRUE,  FALSE, &error));
     assert_error_is_not_null(error);
     g_clear_error(&error);
-    assert_tree_is_null("Non existant file ─ Include hidden files: T ─ Recursive: T", vnr_file_load_single_uri(path, TRUE,  TRUE,  &error));
+    assert_tree_is_null("Non existant file ─ Include hidden files: T ─ Recursive: T", create_tree_from_single_uri(path, TRUE,  TRUE,  &error));
     assert_error_is_not_null(error);
     g_error_free(error);
 
     after();
 }
 
-void test_singleFile_DontIncludeHidden_NotRecursive() {
+static void test_singleFile_DontIncludeHidden_NotRecursive() {
     before();
 
     char* expected = KWHT TESTDIRNAME "  (3 children)" RESET "\n\
@@ -51,12 +65,15 @@ void test_singleFile_DontIncludeHidden_NotRecursive() {
 └─ epa.png\n\
 ";
 
-    assert_equals("Single file ─ Include hidden files: F ─ Recursive: F", expected, get_printed_tree(SINGLE_FILE, FALSE, FALSE));
+    GNode *tree = get_tree(SINGLE_FILE, FALSE, FALSE);
+    assert_number_of_leaves_equals("#Leaves Single file ─ Include hidden files: F ─ Recursive: F", 3, get_total_number_of_leaves(tree));
+
+    assert_equals("Single file ─ Include hidden files: F ─ Recursive: F", expected, print_and_free_tree(tree));
 
     after();
 }
 
-void test_singleFile_DontIncludeHidden_Recursive() {
+static void test_singleFile_DontIncludeHidden_Recursive() {
     before();
 
     char* expected = KWHT TESTDIRNAME "  (5 children)" RESET "\n\
@@ -83,12 +100,15 @@ void test_singleFile_DontIncludeHidden_Recursive() {
     └─ img3.png\n\
 ";
 
-    assert_equals("Single file ─ Include hidden files: F ─ Recursive: T", expected, get_printed_tree(SINGLE_FILE, FALSE, TRUE));
+    GNode *tree = get_tree(SINGLE_FILE, FALSE, TRUE);
+    assert_number_of_leaves_equals("#Leaves Single file ─ Include hidden files: F ─ Recursive: T", 14, get_total_number_of_leaves(tree));
+
+    assert_equals("Single file ─ Include hidden files: F ─ Recursive: T", expected, print_and_free_tree(tree));
 
     after();
 }
 
-void test_singleFile_IncludeHidden_NotRecursive() {
+static void test_singleFile_IncludeHidden_NotRecursive() {
     before();
 
     char* expected = KWHT TESTDIRNAME "  (5 children)" RESET "\n\
@@ -99,12 +119,15 @@ void test_singleFile_IncludeHidden_NotRecursive() {
 └─ epa.png\n\
 ";
 
-    assert_equals("Single file ─ Include hidden files: T ─ Recursive: F", expected, get_printed_tree(SINGLE_FILE, TRUE, FALSE));
+    GNode *tree = get_tree(SINGLE_FILE, TRUE, FALSE);
+    assert_number_of_leaves_equals("#Leaves Single file ─ Include hidden files: T ─ Recursive: F", 5, get_total_number_of_leaves(tree));
+
+    assert_equals("Single file ─ Include hidden files: T ─ Recursive: F", expected, print_and_free_tree(tree));
 
     after();
 }
 
-void test_singleFile_IncludeHidden_Recursive() {
+static void test_singleFile_IncludeHidden_Recursive() {
     before();
 
     char* expected = KWHT TESTDIRNAME "  (7 children)" RESET "\n\
@@ -136,14 +159,17 @@ void test_singleFile_IncludeHidden_Recursive() {
     └─ img3.png\n\
 ";
 
-    assert_equals("Single file ─ Include hidden files: T ─ Recursive: T", expected, get_printed_tree(SINGLE_FILE, TRUE, TRUE));
+    GNode *tree = get_tree(SINGLE_FILE, TRUE, TRUE);
+    assert_number_of_leaves_equals("#Leaves Single file ─ Include hidden files: T ─ Recursive: T", 18, get_total_number_of_leaves(tree));
+
+    assert_equals("Single file ─ Include hidden files: T ─ Recursive: T", expected, print_and_free_tree(tree));
 
     after();
 }
 
 
 
-void test_singleFolder_DontIncludeHidden_NotRecursive() {
+static void test_singleFolder_DontIncludeHidden_NotRecursive() {
     before();
 
     char* expected = KWHT TESTDIRNAME "  (3 children)" RESET "\n\
@@ -152,12 +178,15 @@ void test_singleFolder_DontIncludeHidden_NotRecursive() {
 └─ epa.png\n\
 ";
 
-    assert_equals("Single folder ─ Include hidden files: F ─ Recursive: F", expected, get_printed_tree(SINGLE_FOLDER, FALSE, FALSE));
+    GNode *tree = get_tree(SINGLE_FILE, FALSE, FALSE);
+    assert_number_of_leaves_equals("#Leaves Single folder ─ Include hidden files: F ─ Recursive: F", 3, get_total_number_of_leaves(tree));
+
+    assert_equals("Single folder ─ Include hidden files: F ─ Recursive: F", expected, print_and_free_tree(tree));
 
     after();
 }
 
-void test_singleFolder_DontIncludeHidden_Recursive() {
+static void test_singleFolder_DontIncludeHidden_Recursive() {
     before();
 
     char* expected = KWHT TESTDIRNAME "  (5 children)" RESET "\n\
@@ -183,13 +212,15 @@ void test_singleFolder_DontIncludeHidden_Recursive() {
     ├─ img2.png\n\
     └─ img3.png\n\
 ";
+    GNode *tree = get_tree(SINGLE_FILE, FALSE, TRUE);
+    assert_number_of_leaves_equals("#Leaves Single folder ─ Include hidden files: F ─ Recursive: T", 14, get_total_number_of_leaves(tree));
 
-    assert_equals("Single folder ─ Include hidden files: F ─ Recursive: T", expected, get_printed_tree(SINGLE_FOLDER, FALSE, TRUE));
+    assert_equals("Single folder ─ Include hidden files: F ─ Recursive: T", expected, print_and_free_tree(tree));
 
     after();
 }
 
-void test_singleFolder_IncludeHidden_NotRecursive() {
+static void test_singleFolder_IncludeHidden_NotRecursive() {
     before();
 
     char* expected = KWHT TESTDIRNAME "  (5 children)" RESET "\n\
@@ -199,13 +230,15 @@ void test_singleFolder_IncludeHidden_NotRecursive() {
 ├─ cepa.jpg\n\
 └─ epa.png\n\
 ";
+    GNode *tree = get_tree(SINGLE_FILE, TRUE, FALSE);
+    assert_number_of_leaves_equals("#Leaves Single folder ─ Include hidden files: T ─ Recursive: F", 5, get_total_number_of_leaves(tree));
 
-    assert_equals("Single folder ─ Include hidden files: T ─ Recursive: F", expected, get_printed_tree(SINGLE_FOLDER, TRUE, FALSE));
+    assert_equals("Single folder ─ Include hidden files: T ─ Recursive: F", expected, print_and_free_tree(tree));
 
     after();
 }
 
-void test_singleFolder_IncludeHidden_Recursive() {
+static void test_singleFolder_IncludeHidden_Recursive() {
     before();
 
     char* expected = KWHT TESTDIRNAME "  (7 children)" RESET "\n\
@@ -236,15 +269,17 @@ void test_singleFolder_IncludeHidden_Recursive() {
     ├─ img2.png\n\
     └─ img3.png\n\
 ";
+    GNode *tree = get_tree(SINGLE_FILE, TRUE, TRUE);
+    assert_number_of_leaves_equals("#Leaves Single folder ─ Include hidden files: T ─ Recursive: T", 18, get_total_number_of_leaves(tree));
 
-    assert_equals("Single folder ─ Include hidden files: T ─ Recursive: T", expected, get_printed_tree(SINGLE_FOLDER, TRUE, TRUE));
+    assert_equals("Single folder ─ Include hidden files: T ─ Recursive: T", expected, print_and_free_tree(tree));
 
     after();
 }
 
 
 
-void test_uriList_DontIncludeHidden_NotRecursive() {
+static void test_uriList_DontIncludeHidden_NotRecursive() {
     before();
 
     char* expected = KWHT "<ROOT>  (3 children)" RESET "\n\
@@ -255,17 +290,38 @@ void test_uriList_DontIncludeHidden_NotRecursive() {
   ├─ bepa.png\n\
   └─ cepa.png\n\
 ";
+    GNode *tree = get_tree(VALID_LIST, FALSE, FALSE);
+    assert_number_of_leaves_equals("#Leaves Uri List ─ Include hidden files: F ─ Recursive: F", 5, get_total_number_of_leaves(tree));
 
-    assert_equals("Uri List ─ Include hidden files: F ─ Recursive: F", expected, get_printed_tree(VALID_LIST, FALSE, FALSE));
+    assert_equals("Uri List ─ Include hidden files: F ─ Recursive: F", expected, print_and_free_tree(tree));
     reset_output();
-    assert_equals("Uri List ─ Some invalid files. Include hidden files: F ─ Recursive: F", expected, get_printed_tree(SEMI_INVALID_LIST, FALSE, FALSE));
+
+
+    expected = KWHT "<ROOT>  (4 children)" RESET "\n\
+├─ bepa.png\n\
+├─ cepa.jpg\n\
+├─ img.jpg\n\
+└─┬" KWHT "dir_two  (3 children)" RESET "\n\
+  ├─ apa.png\n\
+  ├─ bepa.png\n\
+  └─ cepa.png\n\
+";
+    tree = get_tree(SEMI_INVALID_LIST, FALSE, FALSE);
+    assert_number_of_leaves_equals("#Leaves Uri List ─ Include hidden files: F ─ Recursive: F", 6, get_total_number_of_leaves(tree));
+
+    assert_equals("Uri List ─ Some invalid files. Include hidden files: F ─ Recursive: F", expected, print_and_free_tree(tree));
     reset_output();
-    assert_equals("Uri List ─ Only invalid files. Include hidden files: F ─ Recursive: F", KWHT "<ROOT>  (0 children)" RESET "\n", get_printed_tree(COMPLETELY_INVALID_LIST, FALSE, FALSE));
+
+
+    tree = get_tree(COMPLETELY_INVALID_LIST, FALSE, FALSE);
+    assert_number_of_leaves_equals("#Leaves Uri List ─ Include hidden files: F ─ Recursive: F", 0, get_total_number_of_leaves(tree));
+
+    assert_equals("Uri List ─ Only invalid files. Include hidden files: F ─ Recursive: F", KWHT "<ROOT>  (0 children)" RESET "\n", print_and_free_tree(tree));
 
     after();
 }
 
-void test_uriList_DontIncludeHidden_Recursive() {
+static void test_uriList_DontIncludeHidden_Recursive() {
     before();
 
     char* expected = KWHT "<ROOT>  (3 children)" RESET "\n\
@@ -288,17 +344,50 @@ void test_uriList_DontIncludeHidden_Recursive() {
     ├─ img2.png\n\
     └─ img3.png\n\
 ";
+    GNode *tree = get_tree(VALID_LIST, FALSE, TRUE);
+    assert_number_of_leaves_equals("#Leaves Uri List ─ Include hidden files: F ─ Recursive: T", 12, get_total_number_of_leaves(tree));
 
-    assert_equals("Uri List ─ Include hidden files: F ─ Recursive: T", expected, get_printed_tree(VALID_LIST, FALSE, TRUE));
+    assert_equals("Uri List ─ Include hidden files: F ─ Recursive: T", expected, print_and_free_tree(tree));
     reset_output();
-    assert_equals("Uri List ─ Some invalid files. Include hidden files: F ─ Recursive: T", expected, get_printed_tree(SEMI_INVALID_LIST, FALSE, TRUE));
+
+
+    expected = KWHT "<ROOT>  (4 children)" RESET "\n\
+├─ bepa.png\n\
+├─ cepa.jpg\n\
+├─ img.jpg\n\
+└─┬" KWHT "dir_two  (7 children)" RESET "\n\
+  ├─ apa.png\n\
+  ├─ bepa.png\n\
+  ├─ cepa.png\n\
+  ├─┬" KWHT "sub_dir_four  (1 children)" RESET "\n\
+  │ └──" KWHT "subsub  (0 children)" RESET "\n\
+  ├─┬" KWHT "sub_dir_one  (3 children)" RESET "\n\
+  │ ├─ img0.png\n\
+  │ ├─ img1.png\n\
+  │ └─ img2.png\n\
+  ├──" KWHT "sub_dir_three  (0 children)" RESET "\n\
+  └─┬" KWHT "sub_dir_two  (4 children)" RESET "\n\
+    ├─ img0.png\n\
+    ├─ img1.png\n\
+    ├─ img2.png\n\
+    └─ img3.png\n\
+";
+    tree = get_tree(SEMI_INVALID_LIST, FALSE, TRUE);
+    assert_number_of_leaves_equals("#Leaves Uri List ─ Include hidden files: F ─ Recursive: T", 13, get_total_number_of_leaves(tree));
+
+    assert_equals("Uri List ─ Some invalid files. Include hidden files: F ─ Recursive: T", expected, print_and_free_tree(tree));
     reset_output();
-    assert_equals("Uri List ─ Only invalid files. Include hidden files: F ─ Recursive: T", KWHT "<ROOT>  (0 children)" RESET "\n", get_printed_tree(COMPLETELY_INVALID_LIST, FALSE, TRUE));
+
+
+    tree = get_tree(COMPLETELY_INVALID_LIST, FALSE, TRUE);
+    assert_number_of_leaves_equals("#Leaves Uri List ─ Include hidden files: F ─ Recursive: T", 0, get_total_number_of_leaves(tree));
+
+    assert_equals("Uri List ─ Only invalid files. Include hidden files: F ─ Recursive: T", KWHT "<ROOT>  (0 children)" RESET "\n", print_and_free_tree(tree));
 
     after();
 }
 
-void test_uriList_IncludeHidden_NotRecursive() {
+static void test_uriList_IncludeHidden_NotRecursive() {
     before();
 
     char* expected = KWHT "<ROOT>  (5 children)" RESET "\n\
@@ -311,17 +400,40 @@ void test_uriList_IncludeHidden_NotRecursive() {
   ├─ bepa.png\n\
   └─ cepa.png\n\
 ";
+    GNode *tree = get_tree(VALID_LIST, TRUE, FALSE);
+    assert_number_of_leaves_equals("#Leaves Uri List ─ Include hidden files: T ─ Recursive: F", 7, get_total_number_of_leaves(tree));
 
-    assert_equals("Uri List ─ Include hidden files: T ─ Recursive: F", expected, get_printed_tree(VALID_LIST, TRUE, FALSE));
+    assert_equals("Uri List ─ Include hidden files: T ─ Recursive: F", expected, print_and_free_tree(tree));
     reset_output();
-    assert_equals("Uri List ─ Some invalid files. Include hidden files: T ─ Recursive: F", expected, get_printed_tree(SEMI_INVALID_LIST, TRUE, FALSE));
+
+
+    expected = KWHT "<ROOT>  (6 children)" RESET "\n\
+├─ .apa.png\n\
+├─ .depa.gif\n\
+├─ bepa.png\n\
+├─ cepa.jpg\n\
+├─ img.jpg\n\
+└─┬" KWHT "dir_two  (3 children)" RESET "\n\
+  ├─ apa.png\n\
+  ├─ bepa.png\n\
+  └─ cepa.png\n\
+";
+    tree = get_tree(SEMI_INVALID_LIST, TRUE, FALSE);
+    assert_number_of_leaves_equals("#Leaves Uri List ─ Include hidden files: T ─ Recursive: F", 8, get_total_number_of_leaves(tree));
+
+    assert_equals("Uri List ─ Some invalid files. Include hidden files: T ─ Recursive: F", expected, print_and_free_tree(tree));
     reset_output();
-    assert_equals("Uri List ─ Only invalid files. Include hidden files: T ─ Recursive: F", KWHT "<ROOT>  (0 children)" RESET "\n", get_printed_tree(COMPLETELY_INVALID_LIST, TRUE, FALSE));
+
+
+    tree = get_tree(COMPLETELY_INVALID_LIST, TRUE, FALSE);
+    assert_number_of_leaves_equals("#Leaves Uri List ─ Include hidden files: T ─ Recursive: F", 0, get_total_number_of_leaves(tree));
+
+    assert_equals("Uri List ─ Only invalid files. Include hidden files: T ─ Recursive: F", KWHT "<ROOT>  (0 children)" RESET "\n", print_and_free_tree(tree));
 
     after();
 }
 
-void test_uriList_IncludeHidden_Recursive() {
+static void test_uriList_IncludeHidden_Recursive() {
     before();
 
     char* expected = KWHT "<ROOT>  (5 children)" RESET "\n\
@@ -346,46 +458,87 @@ void test_uriList_IncludeHidden_Recursive() {
     ├─ img2.png\n\
     └─ img3.png\n\
 ";
+    GNode *tree = get_tree(VALID_LIST, TRUE, TRUE);
+    assert_number_of_leaves_equals("#Leaves Uri List ─ Include hidden files: T ─ Recursive: T", 14, get_total_number_of_leaves(tree));
 
-    assert_equals("Uri List ─ Include hidden files: T ─ Recursive: T", expected, get_printed_tree(VALID_LIST, TRUE, TRUE));
+    assert_equals("Uri List ─ Include hidden files: T ─ Recursive: T", expected, print_and_free_tree(tree));
     reset_output();
-    assert_equals("Uri List ─ Some invalid files. Include hidden files: T ─ Recursive: T", expected, get_printed_tree(SEMI_INVALID_LIST, TRUE, TRUE));
+
+
+
+    expected = KWHT "<ROOT>  (6 children)" RESET "\n\
+├─ .apa.png\n\
+├─ .depa.gif\n\
+├─ bepa.png\n\
+├─ cepa.jpg\n\
+├─ img.jpg\n\
+└─┬" KWHT "dir_two  (7 children)" RESET "\n\
+  ├─ apa.png\n\
+  ├─ bepa.png\n\
+  ├─ cepa.png\n\
+  ├─┬" KWHT "sub_dir_four  (1 children)" RESET "\n\
+  │ └──" KWHT "subsub  (0 children)" RESET "\n\
+  ├─┬" KWHT "sub_dir_one  (3 children)" RESET "\n\
+  │ ├─ img0.png\n\
+  │ ├─ img1.png\n\
+  │ └─ img2.png\n\
+  ├──" KWHT "sub_dir_three  (0 children)" RESET "\n\
+  └─┬" KWHT "sub_dir_two  (4 children)" RESET "\n\
+    ├─ img0.png\n\
+    ├─ img1.png\n\
+    ├─ img2.png\n\
+    └─ img3.png\n\
+";
+    tree = get_tree(SEMI_INVALID_LIST, TRUE, TRUE);
+    assert_number_of_leaves_equals("#Leaves Uri List ─ Include hidden files: T ─ Recursive: F", 15, get_total_number_of_leaves(tree));
+
+    assert_equals("Uri List ─ Some invalid files. Include hidden files: T ─ Recursive: T", expected, print_and_free_tree(tree));
     reset_output();
-    assert_equals("Uri List ─ Only invalid files. Include hidden files: T ─ Recursive: T", KWHT "<ROOT>  (0 children)" RESET "\n", get_printed_tree(COMPLETELY_INVALID_LIST, TRUE, TRUE));
+
+    tree = get_tree(COMPLETELY_INVALID_LIST, TRUE, TRUE);
+    assert_number_of_leaves_equals("#Leaves Uri List ─ Include hidden files: T ─ Recursive: F", 0, get_total_number_of_leaves(tree));
+
+    assert_equals("Uri List ─ Only invalid files. Include hidden files: T ─ Recursive: T", KWHT "<ROOT>  (0 children)" RESET "\n", print_and_free_tree(tree));
 
     after();
 }
 
 
 
-void test_getNextInTree_NullIn() {
+static void test_getNextInTree_NullIn() {
     before();
     assert_tree_is_null("Get Next ─ Input is NULL", get_next_in_tree(NULL));
+    assert_tree_is_null("Get First ─ Input is NULL", get_first_in_tree(NULL));
+    assert_tree_is_null("Get Last ─ Input is NULL", get_last_in_tree(NULL));
     after();
 }
 
-void test_getNextInTree_RootWithoutElements() {
+static void test_getNextInTree_RootWithoutElements() {
     before();
 
     GNode *tree = g_node_new(NULL);
     assert_trees_equal("Get Next ─ Input is Root without elements", tree, get_next_in_tree(tree));
-    free_tree(tree);
+    assert_trees_equal("Get First ─ Input is Root without elements", tree, get_first_in_tree(tree));
+    assert_trees_equal("Get Last ─ Input is Root without elements", tree, get_last_in_tree(tree));
+    free_whole_tree(tree);
 
     after();
 }
 
-void test_getNextInTree_RootWithOnlyDir() {
+static void test_getNextInTree_RootWithOnlyDir() {
     before();
 
     VnrFile* vnrfile = vnr_file_create_new(g_strdup("filepath"), g_strdup("display_name"), TRUE);
     GNode *tree = g_node_new(vnrfile);
     assert_trees_equal("Get Next ─ Input is Root with only one dir", tree, get_next_in_tree(tree));
-    free_tree(tree);
+    assert_trees_equal("Get First ─ Input is Root with only one dir", tree, get_first_in_tree(tree));
+    assert_trees_equal("Get Last ─ Input is Root with only one dir", tree, get_last_in_tree(tree));
+    free_whole_tree(tree);
 
     after();
 }
 
-void test_getNextInTree_SingleFolder_RootWithOnlyThreeDirs() {
+static void test_getNextInTree_SingleFolder_RootWithOnlyThreeDirs() {
     // No before!
 
     create_dir(TESTDIR);
@@ -396,12 +549,14 @@ void test_getNextInTree_SingleFolder_RootWithOnlyThreeDirs() {
     GNode *tree = single_folder(TRUE, TRUE);
 
     assert_trees_equal("Get Next ─ Single folder ─ Input is Root with only three dirs", tree, get_next_in_tree(tree));
-    free_tree(tree);
+    assert_trees_equal("Get First ─ Single folder ─ Input is Root with only three dirs", tree, get_first_in_tree(tree));
+    assert_trees_equal("Get Last ─ Single folder ─ Input is Root with only three dirs", tree, get_last_in_tree(tree));
+    free_whole_tree(tree);
 
     after();
 }
 
-void test_getNextInTree_UriList_RootWithOnlyThreeDirs() {
+static void test_getNextInTree_UriList_RootWithOnlyThreeDirs() {
     // No before!
 
     create_dir(TESTDIR);
@@ -414,11 +569,13 @@ void test_getNextInTree_UriList_RootWithOnlyThreeDirs() {
     uri_list = g_slist_prepend(uri_list, TESTDIR "/cepa.jpg");
 
     GError *error = NULL;
-    GNode *tree = vnr_file_load_uri_list(uri_list, TRUE, TRUE, &error);
+    GNode *tree = create_tree_from_uri_list(uri_list, TRUE, TRUE, &error);
     assert_error_is_null(error);
 
     assert_trees_equal("Get Next ─ Uri List ─ Input is Root with only three dirs", tree, get_next_in_tree(tree));
-    free_tree(tree);
+    assert_trees_equal("Get First ─ Uri List ─ Input is Root with only three dirs", tree, get_first_in_tree(tree));
+    assert_trees_equal("Get Last ─ Uri List ─ Input is Root with only three dirs", tree, get_last_in_tree(tree));
+    free_whole_tree(tree);
 
     after();
 }
@@ -441,49 +598,61 @@ GNode* iteration_test_backward(GNode* node, char* expected_file_name) {
     return iteration_test("Get Prev ─ Iterating ─ ", get_prev_in_tree(node), expected_file_name);
 }
 
-void test_getNextInTree_RootIn() {
+static void test_getNextInTree_RootIn() {
     before();
 
-    GNode *tree = single_file(TRUE, TRUE);
+    GNode *tree = single_file(TRUE, FALSE);
+    tree = get_root_node(tree);
     iteration_test_forward(tree, ".apa.png");
-    free_tree(tree);
+    assert_equals("Get First ─ Root in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Root in",   "epa.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+    free_whole_tree(tree);
 
     after();
 }
 
-void test_getNextInTree_FolderIn() {
+static void test_getNextInTree_FolderIn() {
     before();
 
     GNode *tree = single_file(TRUE, TRUE);
-    GNode *node = tree;
+    tree = get_root_node(tree);
 
-    node = iteration_test_forward(node, ".apa.png");
-    node = iteration_test_forward(node, ".depa.gif");
-    node = iteration_test_forward(node, "bepa.png");
-    node = iteration_test_forward(node, "cepa.jpg");
-    node = iteration_test_forward(node, "epa.png");
+    tree = iteration_test_forward(tree, ".apa.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+    tree = iteration_test_forward(tree, ".depa.gif");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+    tree = iteration_test_forward(tree, "bepa.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+    tree = iteration_test_forward(tree, "cepa.jpg");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+    tree = iteration_test_forward(tree, "epa.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
 
-    node = g_node_next_sibling(node);
-    VnrFile* vnrfile = node->data;
+    tree = g_node_next_sibling(tree);
+    VnrFile* vnrfile = tree->data;
     assert_equals("First directory should be dir_one", "dir_one", vnrfile->display_name);
 
-    iteration_test_forward(node, ".three.png");
+    iteration_test_forward(tree, ".three.png");
 
-    free_tree(tree);
+    free_whole_tree(tree);
 
     after();
 }
 
 
-void test_getNextInTree_Iterate() {
+static void test_getNextInTree_Iterate() {
     before();
 
     GNode *tree = single_file(TRUE, TRUE);
-    GNode *node = tree;
 
 // THIS IS THE STRUCTURE:
 //
-// tests  (7 children)
+// c-trees-tests  (7 children)
 // ├─ .apa.png
 // ├─ .depa.gif
 // ├─ bepa.png
@@ -511,42 +680,104 @@ void test_getNextInTree_Iterate() {
 //     ├─ img2.png
 //     └─ img3.png
 
-    node = iteration_test_forward(node, ".apa.png");
-    node = iteration_test_forward(node, ".depa.gif");
-    node = iteration_test_forward(node, "bepa.png");
-    node = iteration_test_forward(node, "cepa.jpg");
-    node = iteration_test_forward(node, "epa.png");
-    node = iteration_test_forward(node, ".three.png");
-    node = iteration_test_forward(node, "two.jpg");
-    node = iteration_test_forward(node, "img.jpg");
-    node = iteration_test_forward(node, "apa.png");
-    node = iteration_test_forward(node, "bepa.png");
-    node = iteration_test_forward(node, "cepa.png");
-    node = iteration_test_forward(node, "img0.png");
-    node = iteration_test_forward(node, "img1.png");
-    node = iteration_test_forward(node, "img2.png");
-    node = iteration_test_forward(node, "img0.png");
-    node = iteration_test_forward(node, "img1.png");
-    node = iteration_test_forward(node, "img2.png");
-    node = iteration_test_forward(node, "img3.png");
-    // Loop from the beginning.
-    node = iteration_test_forward(node, ".apa.png");
-    node = iteration_test_forward(node, ".depa.gif");
+    tree = get_root_node(tree);
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
 
-    free_tree(tree);
+    tree = iteration_test_forward(tree, ".apa.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, ".depa.gif");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, "bepa.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, "cepa.jpg");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, "epa.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, ".three.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, "two.jpg");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, "img.jpg");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, "apa.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, "bepa.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, "cepa.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, "img0.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, "img1.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, "img2.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, "img0.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, "img1.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, "img2.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, "img3.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    // Loop from the beginning.
+    tree = iteration_test_forward(tree, ".apa.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, ".depa.gif");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    free_whole_tree(tree);
 
     after();
 }
 
-void test_getPrevInTree_Iterate() {
+static void test_getPrevInTree_Iterate() {
     before();
 
     GNode *tree = single_file(TRUE, TRUE);
-    GNode *node = tree;
 
 // THIS IS THE STRUCTURE:
 //
-// tests  (7 children)
+// c-trees-tests  (7 children)
 // ├─ .apa.png
 // ├─ .depa.gif
 // ├─ bepa.png
@@ -574,38 +805,101 @@ void test_getPrevInTree_Iterate() {
 //     ├─ img2.png
 //     └─ img3.png
 
-    node = iteration_test_backward(node, "img3.png");
-    node = iteration_test_backward(node, "img2.png");
-    node = iteration_test_backward(node, "img1.png");
-    node = iteration_test_backward(node, "img0.png");
-    node = iteration_test_backward(node, "img2.png");
-    node = iteration_test_backward(node, "img1.png");
-    node = iteration_test_backward(node, "img0.png");
-    node = iteration_test_backward(node, "cepa.png");
-    node = iteration_test_backward(node, "bepa.png");
-    node = iteration_test_backward(node, "apa.png");
-    node = iteration_test_backward(node, "img.jpg");
-    node = iteration_test_backward(node, "two.jpg");
-    node = iteration_test_backward(node, ".three.png");
-    node = iteration_test_backward(node, "epa.png");
-    node = iteration_test_backward(node, "cepa.jpg");
-    node = iteration_test_backward(node, "bepa.png");
-    node = iteration_test_backward(node, ".depa.gif");
-    node = iteration_test_backward(node, ".apa.png");
-    // Loop from the end.
-    node = iteration_test_backward(node, "img3.png");
-    node = iteration_test_backward(node, "img2.png");
+    tree = get_root_node(tree);
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
 
-    free_tree(tree);
+    tree = iteration_test_backward(tree, "img3.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, "img2.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, "img1.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, "img0.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, "img2.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, "img1.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, "img0.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, "cepa.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, "bepa.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, "apa.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, "img.jpg");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, "two.jpg");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, ".three.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, "epa.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, "cepa.jpg");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, "bepa.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, ".depa.gif");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, ".apa.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    // Loop from the end.
+    tree = iteration_test_backward(tree, "img3.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, "img2.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+
+    free_whole_tree(tree);
 
     after();
 }
 
-void test_getNextInTree_UriList_Iterate() {
+static void test_getNextInTree_UriList_Iterate() {
     before();
 
     GNode *tree = uri_list(TRUE, TRUE);
-    GNode *node = tree;
 
 // THIS IS THE STRUCTURE:
 //
@@ -631,34 +925,85 @@ void test_getNextInTree_UriList_Iterate() {
 //     ├─ img2.png
 //     └─ img3.png
 
-    node = iteration_test_forward(node, ".apa.png");
-    node = iteration_test_forward(node, ".depa.gif");
-    node = iteration_test_forward(node, "bepa.png");
-    node = iteration_test_forward(node, "cepa.jpg");
-    node = iteration_test_forward(node, "apa.png");
-    node = iteration_test_forward(node, "bepa.png");
-    node = iteration_test_forward(node, "cepa.png");
-    node = iteration_test_forward(node, "img0.png");
-    node = iteration_test_forward(node, "img1.png");
-    node = iteration_test_forward(node, "img2.png");
-    node = iteration_test_forward(node, "img0.png");
-    node = iteration_test_forward(node, "img1.png");
-    node = iteration_test_forward(node, "img2.png");
-    node = iteration_test_forward(node, "img3.png");
+    tree = get_root_node(tree);
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, ".apa.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, ".depa.gif");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, "bepa.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, "cepa.jpg");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, "apa.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, "bepa.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, "cepa.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, "img0.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, "img1.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, "img2.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, "img0.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, "img1.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, "img2.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_forward(tree, "img3.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
     // Loop from the beginning.
-    node = iteration_test_forward(node, ".apa.png");
-    node = iteration_test_forward(node, ".depa.gif");
+    tree = iteration_test_forward(tree, ".apa.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
 
-    free_tree(tree);
+    tree = iteration_test_forward(tree, ".depa.gif");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+
+    free_whole_tree(tree);
 
     after();
 }
 
-void test_getPrevInTree_UriList_Iterate() {
+static void test_getPrevInTree_UriList_Iterate() {
     before();
 
     GNode *tree = uri_list(TRUE, TRUE);
-    GNode *node = tree;
 
 // THIS IS THE STRUCTURE:
 //
@@ -684,83 +1029,414 @@ void test_getPrevInTree_UriList_Iterate() {
 //     ├─ img2.png
 //     └─ img3.png
 
-    node = iteration_test_backward(node, "img3.png");
-    node = iteration_test_backward(node, "img2.png");
-    node = iteration_test_backward(node, "img1.png");
-    node = iteration_test_backward(node, "img0.png");
-    node = iteration_test_backward(node, "img2.png");
-    node = iteration_test_backward(node, "img1.png");
-    node = iteration_test_backward(node, "img0.png");
-    node = iteration_test_backward(node, "cepa.png");
-    node = iteration_test_backward(node, "bepa.png");
-    node = iteration_test_backward(node, "apa.png");
-    node = iteration_test_backward(node, "cepa.jpg");
-    node = iteration_test_backward(node, "bepa.png");
-    node = iteration_test_backward(node, ".depa.gif");
-    node = iteration_test_backward(node, ".apa.png");
-    // Loop from the end.
-    node = iteration_test_backward(node, "img3.png");
-    node = iteration_test_backward(node, "img2.png");
+    tree = get_root_node(tree);
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
 
-    free_tree(tree);
+    tree = iteration_test_backward(tree, "img3.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, "img2.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, "img1.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, "img0.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, "img2.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, "img1.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, "img0.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, "cepa.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, "bepa.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, "apa.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, "cepa.jpg");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, "bepa.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, ".depa.gif");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, ".apa.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    // Loop from the end.
+    tree = iteration_test_backward(tree, "img3.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+    tree = iteration_test_backward(tree, "img2.png");
+    assert_equals("Get First ─ Folder in", ".apa.png", (VNR_FILE(get_first_in_tree(tree)->data)->display_name));
+    assert_equals("Get Last ─ Folder in",  "img3.png", (VNR_FILE(get_last_in_tree (tree)->data)->display_name));
+
+
+    free_whole_tree(tree);
 
     after();
 }
 
-void assertChildIsEqual(GNode* tree, char* description, char* expected) {
+static void assert_child_is_equal(char* description, GNode* tree, char* expected) {
     VnrFile *vnrfile = tree != NULL ? tree->data : NULL;
     assert_equals(description, expected, vnrfile != NULL ? vnrfile->path : "NULL");
 }
 
-void test_getChildInDirectory_FileExists() {
+static void test_getChildInDirectory_FindFromRoot_FileExists() {
     before();
     GNode *tree = single_folder(TRUE, TRUE);
-    GNode *child = g_node_last_child(tree);
-    assertChildIsEqual(child, "Get child in directory ─ Last child is dir_two", TESTDIR "/dir_two");
 
-    child = get_child_in_directory(child, TESTDIR "/dir_two/bepa.png");
+// THIS IS THE STRUCTURE:
+//
+// c-trees-tests  (7 children)
+// ├─ .apa.png
+// ├─ .depa.gif
+// ├─ bepa.png
+// ├─ cepa.jpg
+// ├─ epa.png
+// ├─┬dir_one  (3 children)
+// │ ├─ .three.png
+// │ ├─ two.jpg
+// │ └─┬.secrets  (1 children)
+// │   └─ img.jpg
+// └─┬dir_two  (7 children)
+//   ├─ apa.png
+//   ├─ bepa.png
+//   ├─ cepa.png
+//   ├─┬sub_dir_four  (1 children)
+//   │ └──subsub  (0 children)
+//   ├─┬sub_dir_one  (3 children)
+//   │ ├─ img0.png
+//   │ ├─ img1.png
+//   │ └─ img2.png
+//   ├──sub_dir_three  (0 children)
+//   └─┬sub_dir_two  (3 children)
+//     ├─ img0.png
+//     ├─ img1.png
+//     ├─ img2.png
+//     └─ img3.png
 
-    assertChildIsEqual(child, "Get child in directory ─ File exists", TESTDIR "/dir_two/bepa.png");
+    GNode *child0 = get_child_in_directory(tree, TESTDIR "/bepa.png");
+    GNode *child1 = get_child_in_directory(tree, TESTDIR "/dir_two/bepa.png");
 
-    free_tree(tree);
+    assert_child_is_equal("Get child in directory ─ From root ─ File exists", child0, TESTDIR "/bepa.png");
+    assert_child_is_equal("Get child in directory ─ From root ─ File exists", child1, TESTDIR "/dir_two/bepa.png");
+
+    free_whole_tree(tree);
     after();
 }
 
-void test_getChildInDirectory_FileDoesNotExist() {
+static void test_getChildInDirectory_FindFromFileAndDir_FileExists() {
     before();
     GNode *tree = single_folder(TRUE, TRUE);
-    GNode *child = g_node_last_child(tree);
-    assertChildIsEqual(child, "Get child in directory ─ Last child is dir_two", TESTDIR "/dir_two");
+
+// THIS IS THE STRUCTURE:
+//
+// c-trees-tests  (7 children)
+// ├─ .apa.png
+// ├─ .depa.gif
+// ├─ bepa.png
+// ├─ cepa.jpg
+// ├─ epa.png
+// ├─┬dir_one  (3 children)
+// │ ├─ .three.png
+// │ ├─ two.jpg
+// │ └─┬.secrets  (1 children)
+// │   └─ img.jpg
+// └─┬dir_two  (7 children)
+//   ├─ apa.png
+//   ├─ bepa.png
+//   ├─ cepa.png
+//   ├─┬sub_dir_four  (1 children)
+//   │ └──subsub  (0 children)
+//   ├─┬sub_dir_one  (3 children)
+//   │ ├─ img0.png
+//   │ ├─ img1.png
+//   │ └─ img2.png
+//   ├──sub_dir_three  (0 children)
+//   └─┬sub_dir_two  (3 children)
+//     ├─ img0.png
+//     ├─ img1.png
+//     ├─ img2.png
+//     └─ img3.png
+
+    GNode *child0 = get_child_in_directory(tree, TESTDIR "/bepa.png");
+    GNode *child1 = g_node_last_child(get_root_node(tree));
+    assert_child_is_equal("Get child in directory ─ Find bepa.png", child0, TESTDIR "/bepa.png");
+    assert_child_is_equal("Get child in directory ─ Last child is dir_two", child1, TESTDIR "/dir_two");
+
+    GNode *child2 = get_child_in_directory(child0, TESTDIR "/dir_two/bepa.png");
+    GNode *child3 = get_child_in_directory(child1, TESTDIR "/dir_two/bepa.png");
+
+    assert_child_is_equal("Get child in directory ─ From file ─ File exists", child2, TESTDIR "/dir_two/bepa.png");
+    assert_child_is_equal("Get child in directory ─ From subdir ─ File exists", child3, TESTDIR "/dir_two/bepa.png");
+
+    free_whole_tree(tree);
+    after();
+}
+
+static void test_getChildInDirectory_FindAbove_FileExists() {
+    before();
+    GNode *tree = single_folder(TRUE, TRUE);
+
+// THIS IS THE STRUCTURE:
+//
+// c-trees-tests  (7 children)
+// ├─ .apa.png
+// ├─ .depa.gif
+// ├─ bepa.png
+// ├─ cepa.jpg
+// ├─ epa.png
+// ├─┬dir_one  (3 children)
+// │ ├─ .three.png
+// │ ├─ two.jpg
+// │ └─┬.secrets  (1 children)
+// │   └─ img.jpg
+// └─┬dir_two  (7 children)
+//   ├─ apa.png
+//   ├─ bepa.png
+//   ├─ cepa.png
+//   ├─┬sub_dir_four  (1 children)
+//   │ └──subsub  (0 children)
+//   ├─┬sub_dir_one  (3 children)
+//   │ ├─ img0.png
+//   │ ├─ img1.png
+//   │ └─ img2.png
+//   ├──sub_dir_three  (0 children)
+//   └─┬sub_dir_two  (3 children)
+//     ├─ img0.png
+//     ├─ img1.png
+//     ├─ img2.png
+//     └─ img3.png
+
+    GNode *child0 = g_node_last_child(get_root_node(tree));
+    assert_child_is_equal("Get child in directory ─ Find above ─ Last child is dir_two", child0, TESTDIR "/dir_two");
+
+    GNode *child1 = get_child_in_directory(child0, TESTDIR "/epa.png");
+
+    assert_child_is_equal("Get child in directory ─ Find above ─ File exists", child1, TESTDIR "/epa.png");
+
+    free_whole_tree(tree);
+    after();
+}
+
+static void test_getChildInDirectory_FileDoesNotExist() {
+    before();
+    GNode *tree = single_folder(TRUE, TRUE);
+
+// THIS IS THE STRUCTURE:
+//
+// c-trees-tests  (7 children)
+// ├─ .apa.png
+// ├─ .depa.gif
+// ├─ bepa.png
+// ├─ cepa.jpg
+// ├─ epa.png
+// ├─┬dir_one  (3 children)
+// │ ├─ .three.png
+// │ ├─ two.jpg
+// │ └─┬.secrets  (1 children)
+// │   └─ img.jpg
+// └─┬dir_two  (7 children)
+//   ├─ apa.png
+//   ├─ bepa.png
+//   ├─ cepa.png
+//   ├─┬sub_dir_four  (1 children)
+//   │ └──subsub  (0 children)
+//   ├─┬sub_dir_one  (3 children)
+//   │ ├─ img0.png
+//   │ ├─ img1.png
+//   │ └─ img2.png
+//   ├──sub_dir_three  (0 children)
+//   └─┬sub_dir_two  (3 children)
+//     ├─ img0.png
+//     ├─ img1.png
+//     ├─ img2.png
+//     └─ img3.png
+
+    GNode *child = g_node_last_child(get_root_node(tree));
+    assert_child_is_equal("Get child in directory ─ File does not exist ─ Last child is dir_two", child, TESTDIR "/dir_two");
 
     child = get_child_in_directory(child, TESTDIR "/dir_two/depa.png");
 
     assert_tree_is_null("Get child in directory ─ File does not exist", child);
 
-    free_tree(tree);
+    free_whole_tree(tree);
     after();
 }
 
-void test_getChildInDirectory_DirectoryIsEmpty() {
+static void test_getChildInDirectory_SearchFromSubDirectoryIsEmpty() {
     before();
     GNode *tree = single_folder(TRUE, TRUE);
-    GNode *child = tree;
+
+// THIS IS THE STRUCTURE:
+//
+// c-trees-tests  (7 children)
+// ├─ .apa.png
+// ├─ .depa.gif
+// ├─ bepa.png
+// ├─ cepa.jpg
+// ├─ epa.png
+// ├─┬dir_one  (3 children)
+// │ ├─ .three.png
+// │ ├─ two.jpg
+// │ └─┬.secrets  (1 children)
+// │   └─ img.jpg
+// └─┬dir_two  (7 children)
+//   ├─ apa.png
+//   ├─ bepa.png
+//   ├─ cepa.png
+//   ├─┬sub_dir_four  (1 children)
+//   │ └──subsub  (0 children)
+//   ├─┬sub_dir_one  (3 children)
+//   │ ├─ img0.png
+//   │ ├─ img1.png
+//   │ └─ img2.png
+//   ├──sub_dir_three  (0 children)
+//   └─┬sub_dir_two  (3 children)
+//     ├─ img0.png
+//     ├─ img1.png
+//     ├─ img2.png
+//     └─ img3.png
+
+    GNode *child = get_root_node(tree);
     child = g_node_last_child(child);
     child = g_node_first_child(child);
     child = g_node_next_sibling(child);
     child = g_node_next_sibling(child);
     child = g_node_next_sibling(child);
     child = g_node_first_child(child);
-    assertChildIsEqual(child, "Get child in directory ─ Last child is subsub", TESTDIR "/dir_two/sub_dir_four/subsub");
+    assert_child_is_equal("Get child in directory ─ From subdir ─ Last child is subsub", child, TESTDIR "/dir_two/sub_dir_four/subsub");
+
+    child = get_child_in_directory(child, TESTDIR "/.apa.png");
+
+    assert_child_is_equal("Get child in directory ─ From subdir ─ File exists", child, TESTDIR "/.apa.png");
+
+    free_whole_tree(tree);
+    after();
+}
+
+static void test_getChildInDirectory_DirectoryIsEmpty() {
+    before();
+    GNode *tree = single_folder(TRUE, TRUE);
+
+// THIS IS THE STRUCTURE:
+//
+// c-trees-tests  (7 children)
+// ├─ .apa.png
+// ├─ .depa.gif
+// ├─ bepa.png
+// ├─ cepa.jpg
+// ├─ epa.png
+// ├─┬dir_one  (3 children)
+// │ ├─ .three.png
+// │ ├─ two.jpg
+// │ └─┬.secrets  (1 children)
+// │   └─ img.jpg
+// └─┬dir_two  (7 children)
+//   ├─ apa.png
+//   ├─ bepa.png
+//   ├─ cepa.png
+//   ├─┬sub_dir_four  (1 children)
+//   │ └──subsub  (0 children)
+//   ├─┬sub_dir_one  (3 children)
+//   │ ├─ img0.png
+//   │ ├─ img1.png
+//   │ └─ img2.png
+//   ├──sub_dir_three  (0 children)
+//   └─┬sub_dir_two  (3 children)
+//     ├─ img0.png
+//     ├─ img1.png
+//     ├─ img2.png
+//     └─ img3.png
+
+    GNode *child = get_root_node(tree);
+    child = g_node_last_child(child);
+    child = g_node_first_child(child);
+    child = g_node_next_sibling(child);
+    child = g_node_next_sibling(child);
+    child = g_node_next_sibling(child);
+    child = g_node_first_child(child);
+    assert_child_is_equal("Get child in directory ─ Last child is subsub", child, TESTDIR "/dir_two/sub_dir_four/subsub");
 
     child = get_child_in_directory(child, TESTDIR "/dir_two/sub_dir_four/subsub/apa.jpg");
 
     assert_tree_is_null("Get child in directory ─ Directory is empty", child);
 
-    free_tree(tree);
+    free_whole_tree(tree);
     after();
 }
 
-void test_getChildInDirectory_DirectoryIsNull() {
+static void test_getChildInDirectory_FindRoot() {
+    before();
+    GNode *tree = single_folder(TRUE, TRUE);
+
+// THIS IS THE STRUCTURE:
+//
+// c-trees-tests  (7 children)
+// ├─ .apa.png
+// ├─ .depa.gif
+// ├─ bepa.png
+// ├─ cepa.jpg
+// ├─ epa.png
+// ├─┬dir_one  (3 children)
+// │ ├─ .three.png
+// │ ├─ two.jpg
+// │ └─┬.secrets  (1 children)
+// │   └─ img.jpg
+// └─┬dir_two  (7 children)
+//   ├─ apa.png
+//   ├─ bepa.png
+//   ├─ cepa.png
+//   ├─┬sub_dir_four  (1 children)
+//   │ └──subsub  (0 children)
+//   ├─┬sub_dir_one  (3 children)
+//   │ ├─ img0.png
+//   │ ├─ img1.png
+//   │ └─ img2.png
+//   ├──sub_dir_three  (0 children)
+//   └─┬sub_dir_two  (3 children)
+//     ├─ img0.png
+//     ├─ img1.png
+//     ├─ img2.png
+//     └─ img3.png
+
+    GNode *child = get_child_in_directory(tree, TESTDIR);
+
+    assert_child_is_equal("Get child in directory ─ Find root", child, TESTDIR);
+
+    free_whole_tree(tree);
+    after();
+}
+
+static void test_getChildInDirectory_DirectoryIsNull() {
     before();
 
     GNode *child = get_child_in_directory(NULL, TESTDIR "/dir_two/sub_dir_four/subsub/apa.jpg");
@@ -770,6 +1446,293 @@ void test_getChildInDirectory_DirectoryIsNull() {
     after();
 }
 
+
+
+static void test_addNodeInTree_NullIn() {
+    before();
+
+    GNode *tree = NULL;
+    add_node_in_tree(tree, NULL);
+    assert_tree_is_null("Add node in tree ─ Tree is null", tree);
+
+// THIS IS THE STRUCTURE:
+//
+// c-trees-tests  (3 children)
+//├─ bepa.png
+//├─ cepa.jpg
+//└─ epa.png
+
+    GNode *expected = get_tree(SINGLE_FILE, FALSE, FALSE);
+
+    add_node_in_tree(tree, expected);
+    assert_tree_is_null("Add node in tree ─ Tree is null", tree);
+
+    tree = get_tree(SINGLE_FILE, FALSE, FALSE);
+    add_node_in_tree(tree, NULL);
+    assert_trees_equal("Add node in tree ─ Node is null", tree, expected);
+
+
+    GNode *node_without_data = g_node_new(NULL);
+    add_node_in_tree(tree, node_without_data);
+    assert_trees_equal("Add node in tree ─ Node is null", tree, expected);
+
+
+    free_whole_tree(tree);
+    free_whole_tree(expected);
+    free_whole_tree(node_without_data);
+    after();
+}
+
+static void test_addNodeInTree_TreesIn() {
+    before();
+
+    GNode *tree = get_tree(SINGLE_FILE, FALSE, FALSE);
+    GNode *node = get_tree(SINGLE_FILE, FALSE, FALSE);
+    tree = get_root_node(tree);
+    node = get_root_node(node);
+
+    add_node_in_tree(tree, node);
+    char* expected = KWHT "c-trees-tests  (4 children)" RESET "\n\
+├─ bepa.png\n\
+├─ cepa.jpg\n\
+├─ epa.png\n\
+└─┬" KWHT "c-trees-tests  (3 children)" RESET "\n\
+  ├─ bepa.png\n\
+  ├─ cepa.jpg\n\
+  └─ epa.png\n\
+";
+
+    assert_equals("Add node in tree ─ Tree in tree: F ─ Recursive: F", expected, print_and_free_tree(tree));
+
+    after();
+}
+
+static void test_addNodeInTree_DouplicateNode() {
+    before();
+
+    VnrFile *vnrfile = vnr_file_create_new(TESTDIR "/cepa.jpg", "cepa.jpg", FALSE);
+    GNode *node = g_node_new(vnrfile);
+
+    GNode *tree = get_tree(SINGLE_FILE, FALSE, FALSE);
+    tree = get_root_node(tree);
+
+    add_node_in_tree(tree, node);
+    char* expected = KWHT "c-trees-tests  (3 children)" RESET "\n\
+├─ bepa.png\n\
+├─ cepa.jpg\n\
+└─ epa.png\n\
+";
+
+    assert_equals("Add node in tree ─ Douplicate node: F ─ Recursive: F", expected, print_and_free_tree(tree));
+    after();
+}
+
+static void test_addNodeInTree_TreeIsLeaf() {
+    before();
+
+    VnrFile *vnrfile = vnr_file_create_new(TESTDIR "/cepa.jpg", "cepa.jpg", FALSE);
+    GNode *node = g_node_new(vnrfile);
+
+    GNode *tree = get_tree(SINGLE_FILE, FALSE, FALSE);
+    tree = get_root_node(tree);
+    GNode *bepa = iteration_test_forward(tree, "bepa.png");
+
+    add_node_in_tree(bepa, node);
+    char* expected = KWHT "c-trees-tests  (3 children)" RESET "\n\
+├─ bepa.png\n\
+├─ cepa.jpg\n\
+└─ epa.png\n\
+";
+
+    assert_equals("Add node in tree ─ Tree is leaf ─ No change", expected, print_and_free_tree(tree));
+    after();
+}
+
+
+
+static void test_getNumberOfLeaves_NullIn() {
+    before();
+
+    gint position, total;
+    get_leaf_position(NULL, &position, &total);
+
+    assert_number_of_leaves_equals("#Leaves ─ Null input", -1, position);
+    assert_number_of_leaves_equals("#Leaves ─ Null input", 0, total);
+    assert_number_of_leaves_equals("#Leaves ─ Null input", 0, get_total_number_of_leaves(NULL));
+
+    after();
+}
+
+static void test_getNumberOfLeaves_SingleFileNonRecursive_ReturnSameNumberNoMatterWhereInTheTreeWeAre() {
+    before();
+
+    int position, total;
+    GNode *tree = single_file(TRUE, FALSE);
+    tree = get_root_node(tree);
+    GNode *node = tree;
+
+// THIS IS THE STRUCTURE:
+//
+// c-trees-tests  (5 children)
+// ├─ .apa.png
+// ├─ .depa.gif
+// ├─ bepa.png
+// ├─ cepa.jpg
+// └─ epa.png
+
+    get_leaf_position(node, &position, &total);
+    assert_number_of_leaves_equals("#Leaves ─ Tree root as input ─ position", 0, position);
+    assert_number_of_leaves_equals("#Leaves ─ Tree root as input ─ total", 5, total);
+
+
+    node = tree;
+    assert_number_of_leaves_equals("#Leaves ─ Single file, non-recursive ─ Different places in tree", 5, get_total_number_of_leaves(node));
+    node = iteration_test_forward(node, ".apa.png");
+    assert_number_of_leaves_equals("#Leaves ─ Single file, non-recursive ─ Different places in tree", 5, get_total_number_of_leaves(node));
+    node = iteration_test_forward(node, ".depa.gif");
+    assert_number_of_leaves_equals("#Leaves ─ Single file, non-recursive ─ Different places in tree", 5, get_total_number_of_leaves(node));
+
+    free_whole_tree(tree);
+    after();
+}
+
+static void test_getNumberOfLeaves_UriListRecursive_ReturnSameNumberNoMatterWhereInTheTreeWeAre() {
+    before();
+
+    int position, total;
+    GNode *tree = uri_list(TRUE, TRUE);
+
+// THIS IS THE STRUCTURE:
+//
+// <ROOT>  (5 children)
+// ├─ .apa.png
+// ├─ .depa.gif
+// ├─ bepa.png
+// ├─ cepa.jpg
+// └─┬dir_two  (7 children)
+//   ├─ apa.png
+//   ├─ bepa.png
+//   ├─ cepa.png
+//   ├─┬sub_dir_four  (1 children)
+//   │ └──subsub  (0 children)
+//   ├─┬sub_dir_one  (3 children)
+//   │ ├─ img0.png
+//   │ ├─ img1.png
+//   │ └─ img2.png
+//   ├──sub_dir_three  (0 children)
+//   └─┬sub_dir_two  (4 children)
+//     ├─ img0.png
+//     ├─ img1.png
+//     ├─ img2.png
+//     └─ img3.png
+
+    tree = get_root_node(tree);
+    get_leaf_position(tree, &position, &total);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 0, position);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+
+    tree = iteration_test_forward(tree, ".apa.png");
+    get_leaf_position(tree, &position, &total);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 1, position);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+
+    tree = iteration_test_forward(tree, ".depa.gif");
+    get_leaf_position(tree, &position, &total);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 2, position);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+
+    tree = iteration_test_forward(tree, "bepa.png");
+    get_leaf_position(tree, &position, &total);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 3, position);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+
+    tree = iteration_test_forward(tree, "cepa.jpg");
+    get_leaf_position(tree, &position, &total);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 4, position);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+
+    tree = iteration_test_forward(tree, "apa.png");
+    get_leaf_position(tree, &position, &total);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 5, position);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+
+    tree = iteration_test_forward(tree, "bepa.png");
+    get_leaf_position(tree, &position, &total);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 6, position);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+
+    tree = iteration_test_forward(tree, "cepa.png");
+    get_leaf_position(tree, &position, &total);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 7, position);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+
+    tree = iteration_test_forward(tree, "img0.png");
+    get_leaf_position(tree, &position, &total);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 8, position);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+
+    tree = iteration_test_forward(tree, "img1.png");
+    get_leaf_position(tree, &position, &total);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 9, position);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+
+    tree = iteration_test_forward(tree, "img2.png");
+    get_leaf_position(tree, &position, &total);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 10, position);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+
+    tree = iteration_test_forward(tree, "img0.png");
+    get_leaf_position(tree, &position, &total);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 11, position);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+
+    tree = iteration_test_forward(tree, "img1.png");
+    get_leaf_position(tree, &position, &total);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 12, position);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+
+    tree = iteration_test_forward(tree, "img2.png");
+    get_leaf_position(tree, &position, &total);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 13, position);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+
+    tree = iteration_test_forward(tree, "img3.png");
+    get_leaf_position(tree, &position, &total);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 14, position);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+
+    // Loop from the beginning.
+    tree = iteration_test_forward(tree, ".apa.png");
+    get_leaf_position(tree, &position, &total);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 1, position);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+
+    tree = iteration_test_forward(tree, ".depa.gif");
+    get_leaf_position(tree, &position, &total);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 2, position);
+    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+
+    free_whole_tree(tree);
+
+    after();
+}
 
 
 
@@ -805,8 +1768,21 @@ void tree_tests() {
     test_getNextInTree_UriList_Iterate();
     test_getPrevInTree_UriList_Iterate();
 
-    test_getChildInDirectory_FileExists();
+    test_getChildInDirectory_FindFromRoot_FileExists();
+    test_getChildInDirectory_FindFromFileAndDir_FileExists();
+    test_getChildInDirectory_FindAbove_FileExists();
     test_getChildInDirectory_FileDoesNotExist();
+    test_getChildInDirectory_SearchFromSubDirectoryIsEmpty();
     test_getChildInDirectory_DirectoryIsEmpty();
+    test_getChildInDirectory_FindRoot();
     test_getChildInDirectory_DirectoryIsNull();
+
+    test_addNodeInTree_NullIn();
+    test_addNodeInTree_TreesIn();
+    test_addNodeInTree_DouplicateNode();
+    test_addNodeInTree_TreeIsLeaf();
+
+    test_getNumberOfLeaves_NullIn();
+    test_getNumberOfLeaves_SingleFileNonRecursive_ReturnSameNumberNoMatterWhereInTheTreeWeAre();
+    test_getNumberOfLeaves_UriListRecursive_ReturnSameNumberNoMatterWhereInTheTreeWeAre();
 }

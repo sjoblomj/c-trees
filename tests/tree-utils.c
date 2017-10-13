@@ -29,7 +29,7 @@
 #include "../src/vnrfile.h"
 #include "tree-utils.h"
 
-char* output;
+char* out;
 int output_offset = 0;
 
 static void print_tree(GNode *tree, char* tree_structure_base);
@@ -50,12 +50,17 @@ static char* get_file_name(GNode* node) {
     return "<ROOT>";
 }
 
+static gboolean is_leaf(GNode *node) {
+    VnrFile* vnrfile = node->data;
+    return vnrfile != NULL && !vnrfile->is_directory; // A leaf in the tree can represent an empty directory. Otherwise we could do G_NODE_IS_LEAF(node)
+}
+
 static void print_node(GNode *node, gpointer data) {
     if(is_leaf(node)) {
         char* append_str = has_more_siblings(node) ? "├─ " : "└─ ";
         char* tree_structure = create_string((char*) data, append_str);
 
-        output_offset += snprintf(output + output_offset, OUTPUTSIZE - output_offset, "%s%s\n", tree_structure, get_file_name(node));
+        output_offset += snprintf(out + output_offset, OUTPUTSIZE - output_offset, "%s%s\n", tree_structure, get_file_name(node));
 
         free(tree_structure);
 
@@ -77,7 +82,7 @@ static void print_tree(GNode *tree, char* tree_structure_base) {
         }
     }
 
-    output_offset += snprintf(output + output_offset, OUTPUTSIZE - output_offset, "%s%s" KWHT "%s  (%i children)" RESET "\n",
+    output_offset += snprintf(out + output_offset, OUTPUTSIZE - output_offset, "%s%s" KWHT "%s  (%i children)" RESET "\n",
                               tree_structure_base, tree_structure_end, get_file_name(tree), g_node_n_children(tree));
 
     char* append_str = (G_NODE_IS_ROOT(tree) ? "" : (has_more_siblings(tree) ? "│ " : "  "));
@@ -91,8 +96,8 @@ static void print_tree(GNode *tree, char* tree_structure_base) {
     free(tree_structure);
 }
 
-void pretty_print_tree(GNode *tree, char* out) {
-    output = out;
+void pretty_print_tree(GNode *tree, char* output) {
+    out = output;
     output_offset = 0;
-    print_tree(tree, "");
+    print_tree(get_root_node(tree), "");
 }

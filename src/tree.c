@@ -162,7 +162,7 @@ vnr_file_directory_updated(GFileMonitor       *monitor,
             if(child != NULL) {
 
                 g_node_unlink(child);
-                free_tree(child);
+                free_current_tree(child);
             }
 
             g_free(file_path);
@@ -412,8 +412,48 @@ vnr_get_parent_file_path(char *path)
     return parent_path;
 }
 
-GNode*
-vnr_file_load_single_uri(char *p_path, gboolean include_hidden, gboolean include_dirs, GError **error)
+
+/**
+ * Given the path @uri@, a tree will be created and returned. The path
+ * @uri@ may point to a file or a directory. If it is a file, the
+ * content of the whole directory that the file is located in will be
+ * used to populate the tree.
+ *
+ * The root node of the returned tree will always be the directory that
+ * @uri@ points to (if it is a file, then the directory where that file
+ * is placed). If @uri@ is a directory, then the first file in that
+ * directory will be returned. However, if @uri@ is a file, then the
+ * corresponding node down the child branches of the root node will be
+ * the node that is returned from this function. For example, if @uri@
+ * is a file called "/tmp/bepa.png", and in the same directory there are
+ * also "/tmp/apa.jpg" and "/tmp/cepa.gif", then the structure created
+ * would be
+ * tmp
+ * ├─ apa.jpg
+ * ├─ bepa.png
+ * └─ cepa.gif
+ * Thus, the root would be "/tmp", with three children. However, the
+ * node corresponding to "/tmp/bepa.png" would be returned. If there are
+ * no files, the root node is returned.
+ *
+ * File monitors will be set on the directory that @uri@ points to (if
+ * it is a file, then the directory of that file will have a file
+ * monitor). If a file is removed from the file system, the file monitor
+ * will automatically remove the corresponding entry from the returned
+ * tree structure. If files are added to the file system, the
+ * corresponding entries will automatically be added to the returned
+ * tree structure. If @include_dirs@ is TRUE, all nested subdirectories
+ * will also have file monitors. In the example above, there is a file
+ * monitor on "/tmp", so if files are added to /tmp in the file system,
+ * they are also automatically added to the tree structure.
+ *
+ * Setting @include_hidden@ to TRUE will include hidden files and
+ * directories.
+ * Setting @include_dirs@ to TRUE will recursively go down all
+ * subdirectories, include them as well and set file monitors on them.
+ * @error@ will contain any errors that occurred in the process.
+ */
+GNode* create_tree_from_single_uri(char *uri, gboolean include_hidden, gboolean include_dirs, GError **error)
 {
     GNode *tree = NULL;
     VnrFile* vnrfile;
@@ -421,7 +461,7 @@ vnr_file_load_single_uri(char *p_path, gboolean include_hidden, gboolean include
 
     struct Preference_Settings* preference_settings = create_preference_settings(include_hidden, include_dirs, FALSE);
 
-    file_info_ok = vnr_file_get_file_info(p_path,
+    file_info_ok = vnr_file_get_file_info(uri,
                                           &vnrfile,
                                           include_hidden,
                                           error);
@@ -432,10 +472,11 @@ vnr_file_load_single_uri(char *p_path, gboolean include_hidden, gboolean include
                                             error);
         vnr_file_set_file_monitor(tree, preference_settings);
 
+        tree = get_next_in_tree(tree);
 
     } else if(file_info_ok && vnrfile != NULL) {
         vnr_file_destroy_data(vnrfile);
-        char* parent_path = vnr_get_parent_file_path(p_path);
+        char* parent_path = vnr_get_parent_file_path(uri);
 
         file_info_ok = vnr_file_get_file_info(parent_path,
                                               &vnrfile,
@@ -447,14 +488,66 @@ vnr_file_load_single_uri(char *p_path, gboolean include_hidden, gboolean include
                                                 preference_settings,
                                                 error);
         }
+
+        GNode *node = get_child_in_directory(tree, uri);
+        if(node == NULL) {
+            tree = get_next_in_tree(tree);
+        } else {
+            tree = node;
+        }
     }
 
     free(preference_settings);
     return tree;
 }
 
-GNode*
-vnr_file_load_uri_list(GSList *uri_list, gboolean include_hidden, gboolean include_dirs, GError **error)
+/**
+ * Given a list of paths @uri_list@, a tree will be created and
+ * returned. The paths in @uri_list@ may point to files or directories.
+ *
+ * The root node of the returned tree will not contain a file or
+ * directory itself, but instead act as a parent to the children beneath
+ * it, i.e. the content of @uri_list@. The files and directories in
+ * @uri_list@ do not have to be in the same directory. For example, if
+ * @uri_list@ consists of "/tmp/subdir", "/tmp/bepa.png", and
+ * "/tmp/somedir/apa.jpg", then the structure created will be
+ * <ROOT>
+ * ├─ apa.jpg
+ * ├─ bepa.png
+ * └─ /subdir
+ * Thus, the root would contain the three children in @uri_list@, but
+ * the root would not contain a file or directory itself. Despite the
+ * files "apa.jpg" and "bepa.png" not being in the same directory, they
+ * are placed as siblings in the tree.
+ *
+ * The first node containing a file in the tree structure will be
+ * returned. Note that this is not neccessarily the first node in
+ * @uri_list@, since the tree structure is alphabetically sorted by name
+ * (and directories are placed after files). In the case above, the
+ * returned node would be the one containing "apa.jpg". If there are no
+ * files, then the root node is returned.
+ *
+ * File monitors will be set on all the files and directories in
+ * @uri_list@. If a file is removed from the file system, the file
+ * monitor will automatically remove the corresponding entry from the
+ * returned tree structure. If files are added to the file system, the
+ * corresponding entries will automatically be added to the returned
+ * tree structure. If @include_dirs@ is TRUE, all nested subdirectories
+ * will also have file monitors. In the example above, the files
+ * "apa.jpg", "bepa.png" and "/subdir" will have file monitors. Thus,
+ * removing "bepa.png" from the file system will remove it from the tree
+ * structure as well. Adding a file "/tmp/cepa.gif" will do nothing to
+ * the tree, since "/tmp" has no file monitor. However, Adding a file
+ * "/tmp/subdir/cepa.gif" will add it to the tree as well, since
+ * "/subdir" does have a file monitor.
+ *
+ * Setting @include_hidden@ to TRUE will include hidden files and
+ * directories.
+ * Setting @include_dirs@ to TRUE will recursively go down all
+ * subdirectories, include them as well and set file monitors on them.
+ * @error@ will contain any errors that occurred in the process.
+ */
+GNode* create_tree_from_uri_list(GSList *uri_list, gboolean include_hidden, gboolean include_dirs, GError **error)
 {
     GNode *tree      = g_node_new(NULL);
     GList *dir_list  = NULL;
@@ -481,6 +574,9 @@ vnr_file_load_uri_list(GSList *uri_list, gboolean include_hidden, gboolean inclu
                                           &file_list,
                                           preference_settings,
                                           error);
+
+    tree = get_next_in_tree(tree);
+
     free(dir_preference_settings);
     free(preference_settings);
     return tree;
@@ -490,6 +586,11 @@ vnr_file_load_uri_list(GSList *uri_list, gboolean include_hidden, gboolean inclu
 
 
 
+
+static gboolean is_leaf(GNode *node) {
+    VnrFile* vnrfile = node->data;
+    return vnrfile != NULL && !vnrfile->is_directory; // A leaf in the tree can represent an empty directory. Otherwise we could do G_NODE_IS_LEAF(node)
+}
 
 static gboolean has_more_siblings_in_direction(GNode *tree, Direction direction) {
     return tree != (direction == RIGHT ? g_node_last_sibling(tree) : g_node_first_sibling(tree));
@@ -563,7 +664,34 @@ static GNode* get_prev_or_next_in_tree(GNode *tree, Direction direction) {
     return recursively_find_prev_or_next(next, tree, direction, course);
 }
 
-gboolean found_position_of_node(GNode *currnode, GNode *newnode) {
+/**
+ * Returns the first file (i.e. not directory) in the given @tree@.
+ * Will climb up the structure relative to @tree@ if needed.
+ * If there is no such file, @tree@ will be returned.
+ */
+GNode* get_first_in_tree(GNode* tree) {
+    GNode *node = get_root_node(tree);
+    return get_prev_or_next_in_tree(node, RIGHT);
+}
+
+/**
+ * Returns the last file (i.e. not directory) in the given @tree@.
+ * Will climb up the structure relative to @tree@ if needed.
+ * If there is no such file, @tree@ will be returned.
+ */
+GNode* get_last_in_tree(GNode* tree) {
+    GNode *node = get_first_in_tree(tree);
+    if(node == NULL || node->data == NULL) {
+        return tree;
+    } else {
+        return get_prev_or_next_in_tree(node, LEFT);
+    }
+}
+
+
+
+
+static gboolean found_position_where_node_should_be_inserted(GNode *currnode, GNode *newnode) {
     if(currnode == NULL) {
         return TRUE;
     }
@@ -572,75 +700,206 @@ gboolean found_position_of_node(GNode *currnode, GNode *newnode) {
     gboolean newnode_is_file = is_leaf(newnode);
     gboolean both_nodes_are_of_same_type = is_leaf(currnode) == is_leaf(newnode);
     return (currnode_is_dir && newnode_is_file) ||
-            (both_nodes_are_of_same_type && g_strcmp0(((VnrFile*) currnode->data)->display_name, ((VnrFile*) newnode->data)->display_name) > 0);
+            (both_nodes_are_of_same_type && g_strcmp0(((VnrFile*) currnode->data)->display_name_collate, ((VnrFile*) newnode->data)->display_name_collate) > 0);
 }
 
+/**
+ * Adds @node@ as a child of @tree@, sorted by @display_name_collate@.
+ * @tree@ must be a directory, not a file; @node@ may be a file or a
+ * directory. When sorting, files will be inserted before directories.
+ * If @node@ is already present, @tree@ will remain unchanged.
+ */
 void add_node_in_tree(GNode *tree, GNode *node) {
+    if(node == NULL || node->data == NULL || tree == NULL || is_leaf(tree)) {
+        return;
+    }
     GNode *child = get_first_or_last(tree, RIGHT);
 
+    gboolean already_present = FALSE;
     int i = 0;
-    while(!found_position_of_node(child, node)) {
+    while(!found_position_where_node_should_be_inserted(child, node)) {
         i++;
+        if(g_strcmp0(((VnrFile*) child->data)->path, ((VnrFile*) node->data)->path) == 0) {
+            already_present = TRUE;
+            break;
+        }
         if(!has_more_siblings(child)) {
             break;
         }
         child = g_node_next_sibling(child);
     }
-    g_node_insert(tree, i, node);
+    if(!already_present) {
+        g_node_insert(tree, i, node);
+    }
 }
 
 
+gboolean node_has_path(GNode *node, char *path) {
+    if(node == NULL || node->data == NULL) {
+        return FALSE;
+    }
+    VnrFile *vnrfile = node->data;
+    return g_strcmp0(vnrfile->path, path) == 0;
+}
 
 
-GNode* get_child_in_directory(GNode *tree, char* path) {
+GNode* recursively_get_child_in_directory(GNode *tree, char* path) {
     if(tree == NULL) {
         return NULL;
     }
-    GNode* child = get_first_or_last(tree, RIGHT);
-
-    if(child == NULL && has_children(tree)) {
-        // This should be the top node in a uriList.
-        child = get_next_in_tree(tree);
-    } else if(child == NULL && tree->parent != NULL) {
-        child = get_first_or_last(tree->parent, RIGHT);
+    if(node_has_path(tree, path)) {
+        return tree;
     }
+    GNode *child, *dirchild;
 
-    VnrFile* vnrfile = child != NULL ? child->data : NULL;
+    if(has_children(tree)) {
+        child = g_node_first_child(tree);
+        dirchild = recursively_get_child_in_directory(child, path);
 
-    while(child != NULL && g_strcmp0(vnrfile != NULL ? vnrfile->path : "", path) != 0) {
-        child = get_prev_or_next(child, RIGHT);
-        vnrfile = child != NULL ? child->data : NULL;
+        while(dirchild == NULL && has_more_siblings(child)) {
+            child = g_node_next_sibling(child);
+            dirchild = recursively_get_child_in_directory(child, path);
+        }
+        return dirchild;
     }
-    return child;
+    return NULL;
 }
 
-gboolean is_leaf(GNode *node) {
-    VnrFile* vnrfile = node->data;
-    return vnrfile != NULL && !vnrfile->is_directory; // A leaf in the tree can represent an empty directory. Otherwise we could do G_NODE_IS_LEAF(node)
+
+/**
+ * Will move to the topmost root of @tree@, traverse the whole structure
+ * and return the node (file or directory) whose path is equal to
+ * @path@. If no such node exists in the structure, NULL is returned.
+ */
+GNode* get_child_in_directory(GNode *tree, char* path) {
+    return recursively_get_child_in_directory(get_root_node(tree), path);
 }
 
+/**
+ * Returns whether or not the given @tree@ has children
+ * (files or directories).
+ */
 gboolean has_children(GNode *tree) {
     return g_node_n_children(tree) > 0;
 }
 
+/**
+ * Returns whether or not the given @tree@ has any more siblings (files
+ * or directories). If a @tree@ has n children, then giving any of the
+ * first n-1 children of @tree@ as input to this function would return
+ * TRUE. For child n, this function would return FALSE as there are no
+ * more children after it.
+ */
 gboolean has_more_siblings(GNode *tree) {
     return has_more_siblings_in_direction(tree, RIGHT);
 }
 
+
+
+/**
+ * Returns the next file (i.e. not directory) in the given @tree@.
+ * Will climb up the structure relative to @tree@ or "wrap around" if
+ * needed. If there is no such file, @tree@ will be returned.
+ */
 GNode* get_next_in_tree(GNode *tree) {
     return get_prev_or_next_in_tree(tree, RIGHT);
 }
 
+/**
+ * Returns the previous file (i.e. not directory) in the given @tree@.
+ * Will climb up the structure relative to @tree@ or "wrap around" if
+ * needed. If there is no such file, @tree@ will be returned.
+ */
 GNode* get_prev_in_tree(GNode *tree) {
     return get_prev_or_next_in_tree(tree, LEFT);
 }
+
+static void get_number_of_leaves(GNode *tree, GNode *node_to_look_for, int *current, int *total) {
+    if(tree == NULL) {
+        return;
+    }
+
+    if(is_leaf(tree)) {
+        *total = *total + 1;
+    }
+    if(tree == node_to_look_for) {
+        *current = *total;
+    }
+
+    GNode *child = get_first_or_last(tree, RIGHT);
+    while(child != NULL) {
+
+        get_number_of_leaves(child, node_to_look_for, (int*) current, (int*) total);
+        if(!has_more_siblings(child)) {
+            break;
+        }
+        child = get_prev_or_next(child, RIGHT);
+    }
+}
+
+/**
+ * This function will move to the root from @tree@, and go through the
+ * whole structure. All files (i.e. not directories) will be counted,
+ * and that number will be placed in @total@. The position of @tree@ in
+ * the structure will be placed in @tree_position@.
+ */
+void get_leaf_position(GNode *tree, int *tree_position, int *total) {
+
+    *tree_position = -1;
+    *total = 0;
+
+    if(tree != NULL) {
+        get_number_of_leaves(get_root_node(tree), tree, (int*) tree_position, (int*) total);
+    }
+}
+
+/**
+ * This function will move to the root from @tree@, and go through the
+ * whole structure. All files (i.e. not directories) will be counted,
+ * and that number will be returned.
+ */
+int get_total_number_of_leaves(GNode *tree) {
+
+    int tree_position = -1;
+    int total = 0;
+
+    if(tree != NULL) {
+        get_number_of_leaves(get_root_node(tree), NULL, &tree_position, &total);
+    }
+    return total;
+}
+
+/**
+ * Returns the topmost root of @tree@.
+ */
+GNode* get_root_node(GNode *tree) {
+    GNode *node = tree;
+    while (node != NULL && node->parent != NULL) {
+        node = node->parent;
+    }
+    return node;
+}
+
 
 static gboolean destroy_node(GNode *node, gpointer data) {
     vnr_file_destroy_data(node->data);
     return FALSE;
 }
 
-void free_tree(GNode *tree) {
+/**
+ * Frees @tree@. If it is a sub-tree, the rest of the tree will be left
+ * alone. Traverses the whole of @tree@ and destroys the nodes as well.
+ */
+void free_current_tree(GNode *tree) {
     g_node_traverse(tree, G_POST_ORDER, G_TRAVERSE_ALL, -1, destroy_node, NULL);
     g_node_destroy(tree);
+}
+
+/**
+ * Moves to the topmost root of @tree@ and frees the whole structure.
+ * Traverses the whole tree and destroys the nodes as well.
+ */
+void free_whole_tree(GNode *tree) {
+    GNode *node = get_root_node(tree);
+    free_current_tree(node);
 }

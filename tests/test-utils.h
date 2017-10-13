@@ -52,6 +52,8 @@ GNode* single_folder(gboolean include_hidden, gboolean recursive);
 GNode* uri_list(gboolean include_hidden, gboolean recursive);
 GNode* uri_list_with_some_invalid_entries(gboolean include_hidden, gboolean recursive);
 GNode* uri_list_with_only_invalid_entries(gboolean include_hidden, gboolean recursive);
+GNode* get_tree(inputtype type, gboolean include_hidden, gboolean recursive);
+char* print_and_free_tree(GNode *tree);
 char* get_printed_tree(inputtype type, gboolean include_hidden, gboolean recursive);
 GNode* uri_list_with_no_entries(gboolean include_hidden, gboolean recursive);
 
@@ -65,6 +67,7 @@ void before();
 void after();
 void reset_output();
 void assert_equals(char* description, char* expected, char* actual);
+void assert_number_of_leaves_equals(char* description, int expected, int actual);
 void assert_trees_equal(char* description, GNode* expected, GNode* actual);
 void assert_tree_is_null(char* description, GNode* tree);
 void assert_error_is_null(GError* error);

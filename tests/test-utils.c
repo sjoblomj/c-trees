@@ -29,7 +29,7 @@ GNode* single_file(gboolean include_hidden, gboolean recursive) {
     char *path = TESTDIR "/bepa.png";
     GError *error = NULL;
 
-    tree = vnr_file_load_single_uri(path, include_hidden, recursive, &error);
+    tree = create_tree_from_single_uri(path, include_hidden, recursive, &error);
     assert_error_is_null(error);
     return tree;
 }
@@ -39,7 +39,7 @@ GNode* single_folder(gboolean include_hidden, gboolean recursive) {
     char *path = TESTDIR;
     GError *error = NULL;
 
-    tree = vnr_file_load_single_uri(path, include_hidden, recursive, &error);
+    tree = create_tree_from_single_uri(path, include_hidden, recursive, &error);
     assert_error_is_null(error);
     return tree;
 }
@@ -57,7 +57,7 @@ GNode* uri_list(gboolean include_hidden, gboolean recursive) {
 
     GError *error = NULL;
 
-    tree = vnr_file_load_uri_list(uri_list, include_hidden, recursive, &error);
+    tree = create_tree_from_uri_list(uri_list, include_hidden, recursive, &error);
     assert_error_is_null(error);
     return tree;
 }
@@ -70,6 +70,7 @@ GNode* uri_list_with_some_invalid_entries(gboolean include_hidden, gboolean recu
     uri_list = g_slist_prepend(uri_list, TESTDIR "/bepa.png");
     uri_list = g_slist_prepend(uri_list, TESTDIR "/NON_EXISTANT_FILE.jpg");
     uri_list = g_slist_prepend(uri_list, TESTDIR "/cepa.jpg");
+    uri_list = g_slist_prepend(uri_list, TESTDIR "/dir_one/.secrets/img.jpg");
     uri_list = g_slist_prepend(uri_list, TESTDIR "/.depa.gif");
     uri_list = g_slist_prepend(uri_list, TESTDIR "/test.txt");
     uri_list = g_slist_prepend(uri_list, TESTDIR "/dir_two");
@@ -77,7 +78,7 @@ GNode* uri_list_with_some_invalid_entries(gboolean include_hidden, gboolean recu
 
     GError *error = NULL;
 
-    tree = vnr_file_load_uri_list(uri_list, include_hidden, recursive, &error);
+    tree = create_tree_from_uri_list(uri_list, include_hidden, recursive, &error);
     assert_error_is_null(error);
     return tree;
 }
@@ -91,7 +92,7 @@ GNode* uri_list_with_only_invalid_entries(gboolean include_hidden, gboolean recu
 
     GError *error = NULL;
 
-    tree = vnr_file_load_uri_list(uri_list, include_hidden, recursive, &error);
+    tree = create_tree_from_uri_list(uri_list, include_hidden, recursive, &error);
     assert_error_is_null(error);
     return tree;
 }
@@ -103,12 +104,13 @@ GNode* uri_list_with_no_entries(gboolean include_hidden, gboolean recursive) {
 
     GError *error = NULL;
 
-    tree = vnr_file_load_uri_list(uri_list, include_hidden, recursive, &error);
+    tree = create_tree_from_uri_list(uri_list, include_hidden, recursive, &error);
     assert_error_is_null(error);
     return tree;
 }
 
-char* get_printed_tree(inputtype type, gboolean include_hidden, gboolean recursive) {
+GNode* get_tree(inputtype type, gboolean include_hidden, gboolean recursive) {
+
     GNode* tree;
     if(type == SINGLE_FILE) {
         tree = single_file(include_hidden, recursive);
@@ -121,11 +123,20 @@ char* get_printed_tree(inputtype type, gboolean include_hidden, gboolean recursi
     } else {
         tree = uri_list(include_hidden, recursive);
     }
+    return tree;
+}
 
+char* print_and_free_tree(GNode *tree) {
     pretty_print_tree(tree, output);
 
-    free_tree(tree);
+    free_whole_tree(tree);
     return output;
+}
+
+
+char* get_printed_tree(inputtype type, gboolean include_hidden, gboolean recursive) {
+    GNode *tree = get_tree(type, include_hidden, recursive);
+    return print_and_free_tree(tree);
 }
 
 
@@ -278,15 +289,29 @@ void assert_equals(char* description, char* expected, char* actual) {
     }
 }
 
-void assert_trees_equal(char* description, GNode* expected, GNode* actual) {
+void assert_number_of_leaves_equals(char* description, int expected, int actual) {
     if(expected == actual) {
         printf("  " KGRN "[PASS]  %s\n" RESET, description);
     } else {
         printf("\n");
         printf("  " KRED "[FAIL]  %s\n" RESET, description);
+        printf("Expected: %i,   Actual: %i\n\n", expected, actual);
         fprintf(stderr, "* %s\n", description);
         errors++;
     }
+}
+
+void assert_trees_equal(char* description, GNode* expected, GNode* actual) {
+    char *expectedoutput = (char*) malloc(sizeof(char) * OUTPUTSIZE);
+    char *actualoutput = (char*) malloc(sizeof(char) * OUTPUTSIZE);
+
+    pretty_print_tree(expected, expectedoutput);
+    pretty_print_tree(actual, actualoutput);
+
+    assert_equals(description, expectedoutput, actualoutput);
+
+    free(expectedoutput);
+    free(actualoutput);
 }
 
 void assert_tree_is_null(char* description, GNode* tree) {
