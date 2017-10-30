@@ -28,7 +28,8 @@
 #include <gdk/gdkpixbuf.h>
 
 #include "tree.h"
-#include "vnrfile.h"
+
+#define UNUSED(x) (void)(x)
 
 typedef enum {RIGHT, LEFT} Direction;
 typedef enum {CONTINUE, RETREAT} Course;
@@ -38,8 +39,9 @@ struct Preference_Settings {
     gboolean include_hidden;
     gboolean include_dirs;
     gboolean set_file_monitor_for_file;
+    callback cb;
+    gpointer cb_data;
 };
-
 
 
 
@@ -126,14 +128,15 @@ static gboolean vnr_file_is_supported_mime_type(const char *mime_type) {
 }
 
 
-static struct Preference_Settings* create_preference_settings(gboolean include_hidden, gboolean  include_dirs, gboolean set_file_monitor_for_file) {
+static struct Preference_Settings* create_preference_settings(gboolean include_hidden, gboolean  include_dirs, gboolean set_file_monitor_for_file, callback cb, gpointer cb_data) {
     struct Preference_Settings* preference_settings = malloc(sizeof(*preference_settings));
     preference_settings->include_hidden = include_hidden;
     preference_settings->include_dirs = include_dirs;
     preference_settings->set_file_monitor_for_file = set_file_monitor_for_file;
+    preference_settings->cb = cb;
+    preference_settings->cb_data = cb_data;
     return preference_settings;
 }
-
 
 
 
@@ -144,14 +147,21 @@ vnr_file_directory_updated(GFileMonitor       *monitor,
                            GFileMonitorEvent   type,
                            gpointer            data)
 {
+    UNUSED(monitor);
+    UNUSED(other_file);
+
     char *file_path;
     VnrFile* vnrfile_new = NULL;
-
     VnrFile* vnrfile = data;
-    GNode* tree = (vnrfile->context)->tree;
-    gboolean include_hidden = (vnrfile->context)->include_hidden;
-    gboolean include_dirs = (vnrfile->context)->include_dirs;
-    gboolean set_file_monitor_for_file = (vnrfile->context)->set_file_monitor_for_file;
+
+    GNode* tree = (vnrfile->monitoring_data)->tree;
+    gboolean include_hidden = (vnrfile->monitoring_data)->include_hidden;
+    gboolean include_dirs = (vnrfile->monitoring_data)->include_dirs;
+    gboolean set_file_monitor_for_file = (vnrfile->monitoring_data)->set_file_monitor_for_file;
+    callback tree_changed_callback = (vnrfile->monitoring_data)->cb;
+    gpointer cb_data = (vnrfile->monitoring_data)->cb_data;
+
+    GNode *root = get_root_node(tree);
 
     switch (type) {
         case G_FILE_MONITOR_EVENT_DELETED:
@@ -160,9 +170,12 @@ vnr_file_directory_updated(GFileMonitor       *monitor,
             GNode* child = get_child_in_directory(tree, file_path);
 
             if(child != NULL) {
-
                 g_node_unlink(child);
                 free_current_tree(child);
+            }
+
+            if(tree_changed_callback != NULL) {
+                tree_changed_callback(TRUE, file_path, child, root, cb_data);
             }
 
             g_free(file_path);
@@ -175,23 +188,31 @@ vnr_file_directory_updated(GFileMonitor       *monitor,
                                    include_hidden,
                                    NULL);
 
-            GNode *newnode = g_node_new(vnrfile_new);
-
+            GNode *newnode = NULL;
             if(vnr_file_is_directory(vnrfile_new)) {
                 if(include_dirs) {
                     // Newly created directory. It might already have been populated.
 
-                    struct Preference_Settings* preference_settings = create_preference_settings(include_hidden, include_dirs, set_file_monitor_for_file);
+                    struct Preference_Settings* preference_settings = create_preference_settings(include_hidden,
+                                                                                                 include_dirs,
+                                                                                                 set_file_monitor_for_file,
+                                                                                                 tree_changed_callback,
+                                                                                                 cb_data);
 
-                    GNode* subtree = vnr_file_dir_content_to_list(vnrfile_new, preference_settings, NULL);
-                    add_node_in_tree(tree, subtree);
+                    newnode = vnr_file_dir_content_to_list(vnrfile_new, preference_settings, NULL);
+                    add_node_in_tree(tree, newnode);
                     vnr_file_set_file_monitor(newnode, preference_settings);
 
                     free(preference_settings);
                 }
 
             } else {
+                newnode = g_node_new(vnrfile_new);
                 add_node_in_tree(tree, newnode);
+            }
+
+            if(tree_changed_callback != NULL) {
+                tree_changed_callback(FALSE, file_path, newnode, root, cb_data);
             }
 
             g_free(file_path);
@@ -218,13 +239,18 @@ vnr_file_set_file_monitor(GNode* tree, struct Preference_Settings* preference_se
     g_object_unref(file);
 
     if (vnrfile->monitor) {
+
         // This will be freed when the VnrFile is destroyed.
-        struct Context* context = malloc(sizeof(*context));
-        context->tree = tree;
-        context->include_hidden = preference_settings->include_hidden;
-        context->include_dirs = preference_settings->include_dirs;
-        context->set_file_monitor_for_file = preference_settings->set_file_monitor_for_file;
-        vnrfile->context = context;
+        struct MonitoringData* monitoring_data = malloc(sizeof(*monitoring_data));
+
+        monitoring_data->tree = tree;
+        monitoring_data->include_hidden = preference_settings->include_hidden;
+        monitoring_data->include_dirs = preference_settings->include_dirs;
+        monitoring_data->set_file_monitor_for_file = preference_settings->set_file_monitor_for_file;
+        monitoring_data->cb = preference_settings->cb;
+        monitoring_data->cb_data = preference_settings->cb_data;
+
+        vnrfile->monitoring_data = monitoring_data;
 
         g_signal_connect(vnrfile->monitor,
                          "changed",
@@ -241,6 +267,9 @@ vnr_file_get_file_info(char *filepath,
                        gboolean include_hidden,
                        GError **error)
 {
+    if(filepath == NULL) {
+        return FALSE;
+    }
     GFile *file;
     GFileInfo *fileinfo;
     const char *mimetype;
@@ -327,7 +356,9 @@ vnr_append_file_and_dir_lists_to_tree(GNode    **tree,
 
     struct Preference_Settings* dir_preference_settings = create_preference_settings(preference_settings->include_hidden,
                                                                                         preference_settings->include_dirs,
-                                                                                        FALSE);
+                                                                                        FALSE,
+                                                                                        preference_settings->cb,
+                                                                                        preference_settings->cb_data);
     while(*dir_list != NULL) {
 
         subtree = vnr_file_dir_content_to_list((*dir_list)->data,
@@ -443,9 +474,12 @@ vnr_get_parent_file_path(char *path)
  * tree structure. If files are added to the file system, the
  * corresponding entries will automatically be added to the returned
  * tree structure. If @include_dirs@ is TRUE, all nested subdirectories
- * will also have file monitors. In the example above, there is a file
- * monitor on "/tmp", so if files are added to /tmp in the file system,
- * they are also automatically added to the tree structure.
+ * will also have file monitors. When a file monitor is triggered (a
+ * file or directory is created or deleted), a call to the callback
+ * function @cb@ will be made. To it, @cb_data@ will be sent.
+ * In the example above, there is a file monitor on "/tmp", so if files
+ * are added to /tmp in the file system, they are also automatically
+ * added to the tree structure.
  *
  * Setting @include_hidden@ to TRUE will include hidden files and
  * directories.
@@ -453,13 +487,13 @@ vnr_get_parent_file_path(char *path)
  * subdirectories, include them as well and set file monitors on them.
  * @error@ will contain any errors that occurred in the process.
  */
-GNode* create_tree_from_single_uri(char *uri, gboolean include_hidden, gboolean include_dirs, GError **error)
+GNode* create_tree_from_single_uri(char *uri, gboolean include_hidden, gboolean include_dirs, callback cb, gpointer cb_data, GError **error)
 {
     GNode *tree = NULL;
     VnrFile* vnrfile;
     gboolean file_info_ok;
 
-    struct Preference_Settings* preference_settings = create_preference_settings(include_hidden, include_dirs, FALSE);
+    struct Preference_Settings* preference_settings = create_preference_settings(include_hidden, include_dirs, FALSE, cb, cb_data);
 
     file_info_ok = vnr_file_get_file_info(uri,
                                           &vnrfile,
@@ -533,13 +567,15 @@ GNode* create_tree_from_single_uri(char *uri, gboolean include_hidden, gboolean 
  * returned tree structure. If files are added to the file system, the
  * corresponding entries will automatically be added to the returned
  * tree structure. If @include_dirs@ is TRUE, all nested subdirectories
- * will also have file monitors. In the example above, the files
- * "apa.jpg", "bepa.png" and "/subdir" will have file monitors. Thus,
- * removing "bepa.png" from the file system will remove it from the tree
- * structure as well. Adding a file "/tmp/cepa.gif" will do nothing to
- * the tree, since "/tmp" has no file monitor. However, Adding a file
- * "/tmp/subdir/cepa.gif" will add it to the tree as well, since
- * "/subdir" does have a file monitor.
+ * will also have file monitors. When a file monitor is triggered (a
+ * file or directory is created or deleted), a call to the callback
+ * function @cb@ will be made. To it, @cb_data@ will be sent.
+ * In the example above, the files "apa.jpg", "bepa.png" and "/subdir"
+ * will have file monitors. Thus, removing "bepa.png" from the file
+ * system will remove it from the tree structure as well. Adding a file
+ * "/tmp/cepa.gif" will do nothing to the tree, since "/tmp" has no file
+ * monitor. However, Adding a file "/tmp/subdir/cepa.gif" will add it to
+ * the tree as well, since "/subdir" does have a file monitor.
  *
  * Setting @include_hidden@ to TRUE will include hidden files and
  * directories.
@@ -547,14 +583,14 @@ GNode* create_tree_from_single_uri(char *uri, gboolean include_hidden, gboolean 
  * subdirectories, include them as well and set file monitors on them.
  * @error@ will contain any errors that occurred in the process.
  */
-GNode* create_tree_from_uri_list(GSList *uri_list, gboolean include_hidden, gboolean include_dirs, GError **error)
+GNode* create_tree_from_uri_list(GSList *uri_list, gboolean include_hidden, gboolean include_dirs, callback cb, gpointer cb_data, GError **error)
 {
     GNode *tree      = g_node_new(NULL);
     GList *dir_list  = NULL;
     GList *file_list = NULL;
 
 
-    struct Preference_Settings* dir_preference_settings = create_preference_settings(include_hidden, TRUE, TRUE);
+    struct Preference_Settings* dir_preference_settings = create_preference_settings(include_hidden, TRUE, TRUE, cb, cb_data);
 
     while(uri_list != NULL) {
 
@@ -567,7 +603,7 @@ GNode* create_tree_from_uri_list(GSList *uri_list, gboolean include_hidden, gboo
         uri_list = g_slist_next(uri_list);
     }
 
-    struct Preference_Settings* preference_settings = create_preference_settings(include_hidden, include_dirs, TRUE);
+    struct Preference_Settings* preference_settings = create_preference_settings(include_hidden, include_dirs, TRUE, cb, cb_data);
 
     vnr_append_file_and_dir_lists_to_tree(&tree,
                                           &dir_list,
@@ -882,6 +918,7 @@ GNode* get_root_node(GNode *tree) {
 
 
 static gboolean destroy_node(GNode *node, gpointer data) {
+    UNUSED(data);
     vnr_file_destroy_data(node->data);
     return FALSE;
 }

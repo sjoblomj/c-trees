@@ -29,11 +29,13 @@
 #include <gio/gio.h>
 #include <gdk/gdkpixbuf.h>
 
+#define UNUSED(x) (void)(x)
+
 G_DEFINE_TYPE (VnrFile, vnr_file, G_TYPE_OBJECT)
 
 
-static void vnr_file_class_init (VnrFileClass *klass)
-{
+static void vnr_file_class_init (VnrFileClass *klass) {
+    UNUSED(klass);
 }
 
 static void vnr_file_init(VnrFile *file) {
@@ -74,8 +76,8 @@ void vnr_file_destroy_data(VnrFile *vnrfile) {
     if(vnrfile == NULL) {
         return;
     }
-    if(vnrfile->context != NULL) {
-        free(vnrfile->context);
+    if(vnrfile->monitoring_data != NULL) {
+        free(vnrfile->monitoring_data);
     }
     if(vnrfile->monitor != NULL) {
         g_file_monitor_cancel(vnrfile->monitor);

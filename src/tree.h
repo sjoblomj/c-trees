@@ -22,6 +22,8 @@
 #define tree_H
 
 #include <glib.h>
+#include "callback-interface.h"
+#include "vnrfile.h"
 
 
 /**
@@ -54,9 +56,12 @@
  * tree structure. If files are added to the file system, the
  * corresponding entries will automatically be added to the returned
  * tree structure. If @include_dirs@ is TRUE, all nested subdirectories
- * will also have file monitors. In the example above, there is a file
- * monitor on "/tmp", so if files are added to /tmp in the file system,
- * they are also automatically added to the tree structure.
+ * will also have file monitors. When a file monitor is triggered (a
+ * file or directory is created or deleted), a call to the callback
+ * function @cb@ will be made. To it, @cb_data@ will be sent.
+ * In the example above, there is a file monitor on "/tmp", so if files
+ * are added to /tmp in the file system, they are also automatically
+ * added to the tree structure.
  *
  * Setting @include_hidden@ to TRUE will include hidden files and
  * directories.
@@ -67,6 +72,8 @@
 GNode* create_tree_from_single_uri(char *uri,
                                    gboolean include_hidden,
                                    gboolean recursive,
+                                   callback cb,
+                                   gpointer cb_data,
                                    GError **error);
 
 
@@ -102,13 +109,15 @@ GNode* create_tree_from_single_uri(char *uri,
  * returned tree structure. If files are added to the file system, the
  * corresponding entries will automatically be added to the returned
  * tree structure. If @include_dirs@ is TRUE, all nested subdirectories
- * will also have file monitors. In the example above, the files
- * "apa.jpg", "bepa.png" and "/subdir" will have file monitors. Thus,
- * removing "bepa.png" from the file system will remove it from the tree
- * structure as well. Adding a file "/tmp/cepa.gif" will do nothing to
- * the tree, since "/tmp" has no file monitor. However, Adding a file
- * "/tmp/subdir/cepa.gif" will add it to the tree as well, since
- * "/subdir" does have a file monitor.
+ * will also have file monitors. When a file monitor is triggered (a
+ * file or directory is created or deleted), a call to the callback
+ * function @cb@ will be made. To it, @cb_data@ will be sent.
+ * In the example above, the files "apa.jpg", "bepa.png" and "/subdir"
+ * will have file monitors. Thus, removing "bepa.png" from the file
+ * system will remove it from the tree structure as well. Adding a file
+ * "/tmp/cepa.gif" will do nothing to the tree, since "/tmp" has no file
+ * monitor. However, Adding a file "/tmp/subdir/cepa.gif" will add it to
+ * the tree as well, since "/subdir" does have a file monitor.
  *
  * Setting @include_hidden@ to TRUE will include hidden files and
  * directories.
@@ -119,6 +128,8 @@ GNode* create_tree_from_single_uri(char *uri,
 GNode* create_tree_from_uri_list(GSList *uri_list,
                                  gboolean include_hidden,
                                  gboolean recursive,
+                                 callback cb,
+                                 gpointer cb_data,
                                  GError **error);
 
 

@@ -18,13 +18,11 @@
  */
 #include "test-utils.h"
 
-
-
 static void test_filemonitor_create_file_in_folder_nonrecursive() {
     before();
 
-    GNode* tree = single_folder(FALSE, FALSE);
-    pretty_print_tree(tree, output);
+    monitor_test_tree = single_folder(FALSE, FALSE);
+    pretty_print_tree(monitor_test_tree, output);
 
     char* expected = KWHT TESTDIRNAME "  (3 children)" RESET "\n\
 ├─ bepa.png\n\
@@ -44,19 +42,19 @@ static void test_filemonitor_create_file_in_folder_nonrecursive() {
 └─ fepa.jpg\n\
 ";
 
-    wait_until_tree_is_as_expected(tree, expected_after);
+    wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after create in root ─ Include hidden files: F ─ Recursive: F", expected_after, output);
+    assert_file_system_changes(1);
 
-    free_whole_tree(tree);
     after();
 }
 
 static void test_filemonitor_create_file_in_folder_recursive() {
     before();
 
-    GNode* tree = single_folder(FALSE, TRUE);
-    pretty_print_tree(tree, output);
+    monitor_test_tree = single_folder(FALSE, TRUE);
+    pretty_print_tree(monitor_test_tree, output);
 
     char* expected = KWHT TESTDIRNAME "  (5 children)" RESET "\n\
 ├─ bepa.png\n\
@@ -112,19 +110,19 @@ static void test_filemonitor_create_file_in_folder_recursive() {
     └─ img3.png\n\
 ";
 
-    wait_until_tree_is_as_expected(tree, expected_after);
+    wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after create in subdir ─ Include hidden files: F ─ Recursive: T", expected_after, output);
+    assert_file_system_changes(1);
 
-    free_whole_tree(tree);
     after();
 }
 
 static void test_filemonitor_create_hidden_file_in_folder_nonrecursive() {
     before();
 
-    GNode* tree = single_folder(FALSE, FALSE);
-    pretty_print_tree(tree, output);
+    monitor_test_tree = single_folder(FALSE, FALSE);
+    pretty_print_tree(monitor_test_tree, output);
 
     char* expected = KWHT TESTDIRNAME "  (3 children)" RESET "\n\
 ├─ bepa.png\n\
@@ -144,19 +142,19 @@ static void test_filemonitor_create_hidden_file_in_folder_nonrecursive() {
 ";
 
 
-    wait_until_tree_is_as_expected(tree, expected_after);
+    wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after create hidden in root ─ Include hidden files: F ─ Recursive: F", expected_after, output);
+    assert_file_system_changes(0);
 
-    free_whole_tree(tree);
     after();
 }
 
 static void test_filemonitor_create_multiple_files_in_folder_recursive() {
     before();
 
-    GNode* tree = single_folder(FALSE, TRUE);
-    pretty_print_tree(tree, output);
+    monitor_test_tree = single_folder(FALSE, TRUE);
+    pretty_print_tree(monitor_test_tree, output);
 
     char* expected = KWHT TESTDIRNAME "  (5 children)" RESET "\n\
 ├─ bepa.png\n\
@@ -218,19 +216,19 @@ static void test_filemonitor_create_multiple_files_in_folder_recursive() {
     └─ img3.png\n\
 ";
 
-    wait_until_tree_is_as_expected(tree, expected_after);
+    wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after create multiple files in subdirs ─ Include hidden files: F ─ Recursive: T", expected_after, output);
+    assert_file_system_changes(4);
 
-    free_whole_tree(tree);
     after();
 }
 
 static void test_filemonitor_create_file_in_folder_sorted() {
     before();
 
-    GNode* tree = single_folder(FALSE, FALSE);
-    pretty_print_tree(tree, output);
+    monitor_test_tree = single_folder(FALSE, FALSE);
+    pretty_print_tree(monitor_test_tree, output);
 
     char* expected = KWHT TESTDIRNAME "  (3 children)" RESET "\n\
 ├─ bepa.png\n\
@@ -251,19 +249,19 @@ static void test_filemonitor_create_file_in_folder_sorted() {
 ";
 
 
-    wait_until_tree_is_as_expected(tree, expected_after);
+    wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after create file in folder sorted ─ Include hidden files: F ─ Recursive: F", expected_after, output);
+    assert_file_system_changes(1);
 
-    free_whole_tree(tree);
     after();
 }
 
 static void test_filemonitor_create_folder_in_folder_sorted() {
     before();
 
-    GNode* tree = single_folder(FALSE, TRUE);
-    pretty_print_tree(tree, output);
+    monitor_test_tree = single_folder(FALSE, TRUE);
+    pretty_print_tree(monitor_test_tree, output);
 
     char* expected = KWHT TESTDIRNAME "  (5 children)" RESET "\n\
 ├─ bepa.png\n\
@@ -319,11 +317,11 @@ static void test_filemonitor_create_folder_in_folder_sorted() {
     └─ img3.png\n\
 ";
 
-    wait_until_tree_is_as_expected(tree, expected_after);
+    wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after create folder in folder sorted ─ Include hidden files: F ─ Recursive: T", expected_after, output);
+    assert_file_system_changes(1);
 
-    free_whole_tree(tree);
     after();
 }
 
@@ -331,8 +329,8 @@ static void test_filemonitor_create_folder_in_folder_sorted() {
 static void test_filemonitor_recursive_create_dir_then_create_files_in_it() {
     before();
 
-    GNode* tree = single_folder(FALSE, TRUE);
-    pretty_print_tree(tree, output);
+    monitor_test_tree = single_folder(FALSE, TRUE);
+    pretty_print_tree(monitor_test_tree, output);
 
     char* expected = KWHT TESTDIRNAME "  (5 children)" RESET "\n\
 ├─ bepa.png\n\
@@ -392,11 +390,11 @@ static void test_filemonitor_recursive_create_dir_then_create_files_in_it() {
   └─ bepa.png\n\
 ";
 
-    wait_until_tree_is_as_expected(tree, expected_after);
+    wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after create dir with files ─ Include hidden files: F ─ Recursive: T", expected_after, output);
+    assert_file_system_changes(1);
 
-    free_whole_tree(tree);
     after();
 }
 
@@ -404,8 +402,8 @@ static void test_filemonitor_recursive_create_dir_then_create_files_in_it() {
 static void test_filemonitor_nonrecursive_create_dir_then_create_files_in_it() {
     before();
 
-    GNode* tree = single_folder(FALSE, FALSE);
-    pretty_print_tree(tree, output);
+    monitor_test_tree = single_folder(FALSE, FALSE);
+    pretty_print_tree(monitor_test_tree, output);
 
     char* expected = KWHT TESTDIRNAME "  (3 children)" RESET "\n\
 ├─ bepa.png\n\
@@ -426,11 +424,11 @@ static void test_filemonitor_nonrecursive_create_dir_then_create_files_in_it() {
 └─ epa.png\n\
 ";
 
-    wait_until_tree_is_as_expected(tree, expected_after);
+    wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after create dir with files ─ Include hidden files: F ─ Recursive: F", expected_after, output);
+    assert_file_system_changes(0);
 
-    free_whole_tree(tree);
     after();
 }
 
@@ -442,8 +440,8 @@ static void test_filemonitor_nonrecursive_create_dir_then_create_files_in_it() {
 static void test_filemonitor_uriList_create_file_in_root() {
     before();
 
-    GNode* tree = uri_list(FALSE, FALSE);
-    pretty_print_tree(tree, output);
+    monitor_test_tree = uri_list(FALSE, FALSE);
+    pretty_print_tree(monitor_test_tree, output);
 
     char* expected = KWHT "<ROOT>  (3 children)" RESET "\n\
 ├─ bepa.png\n\
@@ -468,11 +466,11 @@ static void test_filemonitor_uriList_create_file_in_root() {
   └─ cepa.png\n\
 ";
 
-    wait_until_tree_is_as_expected(tree, expected_after);
+    wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after urilist create file in root ─ Include hidden files: F ─ Recursive: F", expected_after, output);
+    assert_file_system_changes(0);
 
-    free_whole_tree(tree);
     after();
 }
 
@@ -480,8 +478,8 @@ static void test_filemonitor_uriList_create_file_in_root() {
 static void test_filemonitor_uriList_create_dir_in_root() {
     before();
 
-    GNode* tree = uri_list(FALSE, FALSE);
-    pretty_print_tree(tree, output);
+    monitor_test_tree = uri_list(FALSE, FALSE);
+    pretty_print_tree(monitor_test_tree, output);
 
     char* expected = KWHT "<ROOT>  (3 children)" RESET "\n\
 ├─ bepa.png\n\
@@ -509,19 +507,19 @@ static void test_filemonitor_uriList_create_dir_in_root() {
   └─ cepa.png\n\
 ";
 
-    wait_until_tree_is_as_expected(tree, expected_after);
+    wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after urilist create dir in root ─ Include hidden files: F ─ Recursive: F", expected_after, output);
+    assert_file_system_changes(0);
 
-    free_whole_tree(tree);
     after();
 }
 
 static void test_filemonitor_uriList_create_file_in_watched_dir() {
     before();
 
-    GNode* tree = uri_list(FALSE, FALSE);
-    pretty_print_tree(tree, output);
+    monitor_test_tree = uri_list(FALSE, FALSE);
+    pretty_print_tree(monitor_test_tree, output);
 
     char* expected = KWHT "<ROOT>  (3 children)" RESET "\n\
 ├─ bepa.png\n\
@@ -548,19 +546,19 @@ static void test_filemonitor_uriList_create_file_in_watched_dir() {
   └─ depa.png\n\
 ";
 
-    wait_until_tree_is_as_expected(tree, expected_after);
+    wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after urilist create file in watched dir ─ Include hidden files: F ─ Recursive: F", expected_after, output);
+    assert_file_system_changes(1);
 
-    free_whole_tree(tree);
     after();
 }
 
 static void test_filemonitor_uriList_create_file_in_nonwatched_dir() {
     before();
 
-    GNode* tree = uri_list(FALSE, FALSE);
-    pretty_print_tree(tree, output);
+    monitor_test_tree = uri_list(FALSE, FALSE);
+    pretty_print_tree(monitor_test_tree, output);
 
     char* expected = KWHT "<ROOT>  (3 children)" RESET "\n\
 ├─ bepa.png\n\
@@ -586,19 +584,19 @@ static void test_filemonitor_uriList_create_file_in_nonwatched_dir() {
   └─ cepa.png\n\
 ";
 
-    wait_until_tree_is_as_expected(tree, expected_after);
+    wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after urilist create file in nonwatched dir ─ Include hidden files: F ─ Recursive: F", expected_after, output);
+    assert_file_system_changes(0);
 
-    free_whole_tree(tree);
     after();
 }
 
 static void test_filemonitor_uriList_create_file_in_empty_root() {
     before();
 
-    GNode* tree = uri_list_with_no_entries(FALSE, FALSE);
-    pretty_print_tree(tree, output);
+    monitor_test_tree = uri_list_with_no_entries(FALSE, FALSE);
+    pretty_print_tree(monitor_test_tree, output);
 
     char* expected = KWHT "<ROOT>  (0 children)" RESET "\n\
 ";
@@ -612,11 +610,11 @@ static void test_filemonitor_uriList_create_file_in_empty_root() {
     char* expected_after = KWHT "<ROOT>  (0 children)" RESET "\n\
 ";
 
-    wait_until_tree_is_as_expected(tree, expected_after);
+    wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after urilist create file in empty dir ─ Include hidden files: F ─ Recursive: F", expected_after, output);
+    assert_file_system_changes(0);
 
-    free_whole_tree(tree);
     after();
 }
 
@@ -628,8 +626,8 @@ static void test_filemonitor_uriList_create_file_in_empty_root() {
 static void test_filemonitor_delete_file_in_folder_root() {
     before();
 
-    GNode* tree = single_folder(TRUE, FALSE);
-    pretty_print_tree(tree, output);
+    monitor_test_tree = single_folder(TRUE, FALSE);
+    pretty_print_tree(monitor_test_tree, output);
 
     char* expected = KWHT TESTDIRNAME "  (5 children)" RESET "\n\
 ├─ .apa.png\n\
@@ -651,20 +649,19 @@ static void test_filemonitor_delete_file_in_folder_root() {
 └─ epa.png\n\
 ";
 
-    wait_until_tree_is_as_expected(tree, expected_after);
+    wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after delete in dirroot ─ Include hidden files: T ─ Recursive: F", expected_after, output);
+    assert_file_system_changes(1);
 
-    free_whole_tree(tree);
     after();
 }
 
 static void test_filemonitor_delete_hidden_file_in_folder_root() {
     before();
 
-    GNode* tree = single_folder(TRUE, FALSE);
-tree = get_root_node(tree); // TODO: Tempfix, fix this properly!
-    pretty_print_tree(tree, output);
+    monitor_test_tree = single_folder(TRUE, FALSE);
+    pretty_print_tree(monitor_test_tree, output);
 
     char* expected = KWHT TESTDIRNAME "  (5 children)" RESET "\n\
 ├─ .apa.png\n\
@@ -686,19 +683,19 @@ tree = get_root_node(tree); // TODO: Tempfix, fix this properly!
 └─ epa.png\n\
 ";
 
-    wait_until_tree_is_as_expected(tree, expected_after);
+    wait_until_file_system_changes_is_as_expected(1);
+    wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after delete hidden ─ Include hidden files: T ─ Recursive: F", expected_after, output);
 
-    free_whole_tree(tree);
     after();
 }
 
 static void test_filemonitor_delete_file_in_sub_folder() {
     before();
 
-    GNode* tree = single_folder(FALSE, TRUE);
-    pretty_print_tree(tree, output);
+    monitor_test_tree = single_folder(FALSE, TRUE);
+    pretty_print_tree(monitor_test_tree, output);
 
     char* expected = KWHT TESTDIRNAME "  (5 children)" RESET "\n\
 ├─ bepa.png\n\
@@ -752,19 +749,19 @@ static void test_filemonitor_delete_file_in_sub_folder() {
     └─ img3.png\n\
 ";
 
-    wait_until_tree_is_as_expected(tree, expected_after);
+    wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after delete in subdir ─ Include hidden files: F ─ Recursive: T", expected_after, output);
+    assert_file_system_changes(1);
 
-    free_whole_tree(tree);
     after();
 }
 
 static void test_filemonitor_delete_multiple_files() {
     before();
 
-    GNode* tree = single_folder(FALSE, TRUE);
-    pretty_print_tree(tree, output);
+    monitor_test_tree = single_folder(FALSE, TRUE);
+    pretty_print_tree(monitor_test_tree, output);
 
     char* expected = KWHT TESTDIRNAME "  (5 children)" RESET "\n\
 ├─ bepa.png\n\
@@ -818,19 +815,19 @@ static void test_filemonitor_delete_multiple_files() {
     └─ img3.png\n\
 ";
 
-    wait_until_tree_is_as_expected(tree, expected_after);
+    wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after delete in subdir ─ Include hidden files: F ─ Recursive: T", expected_after, output);
+    assert_file_system_changes(3);
 
-    free_whole_tree(tree);
     after();
 }
 
 static void test_filemonitor_delete_subsub_folder() {
     before();
 
-    GNode* tree = single_folder(FALSE, TRUE);
-    pretty_print_tree(tree, output);
+    monitor_test_tree = single_folder(FALSE, TRUE);
+    pretty_print_tree(monitor_test_tree, output);
 
     char* expected = KWHT TESTDIRNAME "  (5 children)" RESET "\n\
 ├─ bepa.png\n\
@@ -881,20 +878,21 @@ static void test_filemonitor_delete_subsub_folder() {
     └─ img3.png\n\
 ";
 
-    wait_until_tree_is_as_expected(tree, expected_after);
+    wait_until_file_system_changes_is_as_expected(5);
+    wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
 
     assert_equals("File monitor after delete subsubdir ─ Include hidden files: F ─ Recursive: T", expected_after, output);
+    assert_file_system_changes(5); // delete img0.png, img1.png, img2.png, sub_dir_one and remove sub_dir_one from dir_two
 
-    free_whole_tree(tree);
     after();
 }
 
 static void test_filemonitor_delete_sub_folder() {
     before();
 
-    GNode* tree = single_folder(FALSE, TRUE);
-    pretty_print_tree(tree, output);
+    monitor_test_tree = single_folder(FALSE, TRUE);
+    pretty_print_tree(monitor_test_tree, output);
 
     char* expected = KWHT TESTDIRNAME "  (5 children)" RESET "\n\
 ├─ bepa.png\n\
@@ -933,21 +931,22 @@ static void test_filemonitor_delete_sub_folder() {
   └─ two.jpg\n\
 ";
 
-    wait_until_tree_is_as_expected(tree, expected_after);
+    wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
 
     assert_equals("File monitor after delete subdir ─ Include hidden files: F ─ Recursive: T", expected_after, output);
+    assert_file_system_changes(12); // delete subsub, remove subsub from sub_dir_four, delete sub_dir_four, remove sub_dir_four from dir_two,
+                                    // delete sub_dir_one, delete apa.png, bepa.png, cepa.png, delete sub_dir_three, delete sub_dir_two,
+                                    // delete dir_two, remove dir_two from root
 
-    free_whole_tree(tree);
     after();
 }
 
 static void test_filemonitor_delete_root_folder() {
     before();
 
-    GNode* tree = single_folder(FALSE, TRUE);
-tree = get_root_node(tree); // TODO: Tempfix, fix this properly!
-    pretty_print_tree(tree, output);
+    monitor_test_tree = single_folder(FALSE, TRUE);
+    pretty_print_tree(monitor_test_tree, output);
 
     char* expected = KWHT TESTDIRNAME "  (5 children)" RESET "\n\
 ├─ bepa.png\n\
@@ -978,16 +977,11 @@ tree = get_root_node(tree); // TODO: Tempfix, fix this properly!
 
     remove_directory(TESTDIR);
 
-//char* expected_after = KWHT TESTDIRNAME "  (0 children)" RESET "\n\ // TODO: Tempfix, fix this properly!
-    char* expected_after = KWHT "(null)  (0 children)" RESET "\n\
-";
 
-    wait_until_tree_is_as_expected(tree, expected_after);
+    wait_until_tree_is_null();
 
+    assert_tree_is_null("File monitor after delete root ─ Include hidden files: F ─ Recursive: T", monitor_test_tree);
 
-    assert_equals("File monitor after delete root ─ Include hidden files: F ─ Recursive: T", expected_after, output);
-
-//    free_whole_tree(tree); //TODO: Tempfix, fix this properly!
     after();
 }
 
@@ -996,8 +990,8 @@ tree = get_root_node(tree); // TODO: Tempfix, fix this properly!
 static void test_filemonitor_uriList_delete_file_under_root() {
     before();
 
-    GNode* tree = uri_list(FALSE, FALSE);
-    pretty_print_tree(tree, output);
+    monitor_test_tree = uri_list(FALSE, FALSE);
+    pretty_print_tree(monitor_test_tree, output);
 
     char* expected = KWHT "<ROOT>  (3 children)" RESET "\n\
 ├─ bepa.png\n\
@@ -1022,20 +1016,20 @@ static void test_filemonitor_uriList_delete_file_under_root() {
   └─ cepa.png\n\
 ";
 
-tree = get_root_node(tree); // TODO: Tempfix, fix this properly!
-    wait_until_tree_is_as_expected(tree, expected_after);
+    wait_until_file_system_changes_is_as_expected(1);
+    wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after urilist delete file in root ─ Include hidden files: F ─ Recursive: F", expected_after, output);
+    assert_file_system_changes(1);
 
-    free_whole_tree(tree);
     after();
 }
 
 static void test_filemonitor_uriList_delete_nonwatched_file_under_root() {
     before();
 
-    GNode* tree = uri_list(FALSE, FALSE);
-    pretty_print_tree(tree, output);
+    monitor_test_tree = uri_list(FALSE, FALSE);
+    pretty_print_tree(monitor_test_tree, output);
 
     char* expected = KWHT "<ROOT>  (3 children)" RESET "\n\
 ├─ bepa.png\n\
@@ -1061,19 +1055,19 @@ static void test_filemonitor_uriList_delete_nonwatched_file_under_root() {
   └─ cepa.png\n\
 ";
 
-    wait_until_tree_is_as_expected(tree, expected_after);
+    wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after urilist delete nonwatched file in root ─ Include hidden files: F ─ Recursive: F", expected_after, output);
+    assert_file_system_changes(0);
 
-    free_whole_tree(tree);
     after();
 }
 
 static void test_filemonitor_uriList_delete_nonwatched_file_under_empty_root() {
     before();
 
-    GNode* tree = uri_list_with_no_entries(FALSE, FALSE);
-    pretty_print_tree(tree, output);
+    monitor_test_tree = uri_list_with_no_entries(FALSE, FALSE);
+    pretty_print_tree(monitor_test_tree, output);
 
     char* expected = KWHT "<ROOT>  (0 children)" RESET "\n\
 ";
@@ -1087,19 +1081,19 @@ static void test_filemonitor_uriList_delete_nonwatched_file_under_empty_root() {
     char* expected_after = KWHT "<ROOT>  (0 children)" RESET "\n\
 ";
 
-    wait_until_tree_is_as_expected(tree, expected_after);
+    wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after urilist delete file in empty root ─ Include hidden files: F ─ Recursive: F", expected_after, output);
+    assert_file_system_changes(0);
 
-    free_whole_tree(tree);
     after();
 }
 
 static void test_filemonitor_uriList_delete_file_under_watched_dir() {
     before();
 
-    GNode* tree = uri_list(FALSE, FALSE);
-    pretty_print_tree(tree, output);
+    monitor_test_tree = uri_list(FALSE, FALSE);
+    pretty_print_tree(monitor_test_tree, output);
 
     char* expected = KWHT "<ROOT>  (3 children)" RESET "\n\
 ├─ bepa.png\n\
@@ -1124,19 +1118,19 @@ static void test_filemonitor_uriList_delete_file_under_watched_dir() {
   └─ cepa.png\n\
 ";
 
-    wait_until_tree_is_as_expected(tree, expected_after);
+    wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after urilist delete file in watched dir ─ Include hidden files: F ─ Recursive: F", expected_after, output);
+    assert_file_system_changes(1);
 
-    free_whole_tree(tree);
     after();
 }
 
 static void test_filemonitor_uriList_delete_file_under_nonwatched_dir() {
     before();
 
-    GNode* tree = uri_list(FALSE, FALSE);
-    pretty_print_tree(tree, output);
+    monitor_test_tree = uri_list(FALSE, FALSE);
+    pretty_print_tree(monitor_test_tree, output);
 
     char* expected = KWHT "<ROOT>  (3 children)" RESET "\n\
 ├─ bepa.png\n\
@@ -1162,11 +1156,11 @@ static void test_filemonitor_uriList_delete_file_under_nonwatched_dir() {
   └─ cepa.png\n\
 ";
 
-    wait_until_tree_is_as_expected(tree, expected_after);
+    wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after urilist delete file in nonwatched dir ─ Include hidden files: F ─ Recursive: F", expected_after, output);
+    assert_file_system_changes(0);
 
-    free_whole_tree(tree);
     after();
 }
 
@@ -1175,8 +1169,8 @@ static void test_filemonitor_uriList_delete_file_under_nonwatched_dir() {
 static void test_filemonitor_move_file_in_same_dir() {
     before();
 
-    GNode* tree = single_folder(FALSE, TRUE);
-    pretty_print_tree(tree, output);
+    monitor_test_tree = single_folder(FALSE, TRUE);
+    pretty_print_tree(monitor_test_tree, output);
 
     char* expected = KWHT TESTDIRNAME "  (5 children)" RESET "\n\
 ├─ bepa.png\n\
@@ -1232,20 +1226,20 @@ static void test_filemonitor_move_file_in_same_dir() {
 ";
 
 
-    wait_until_tree_is_as_expected(tree, expected_after);
+    wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
 
     assert_equals("File monitor after move file in same dir ─ Include hidden files: F ─ Recursive: T", expected_after, output);
+    assert_file_system_changes(2);
 
-    free_whole_tree(tree);
     after();
 }
 
 static void test_filemonitor_move_file_to_subdir() {
     before();
 
-    GNode* tree = single_folder(FALSE, TRUE);
-    pretty_print_tree(tree, output);
+    monitor_test_tree = single_folder(FALSE, TRUE);
+    pretty_print_tree(monitor_test_tree, output);
 
     char* expected = KWHT TESTDIRNAME "  (5 children)" RESET "\n\
 ├─ bepa.png\n\
@@ -1301,20 +1295,20 @@ static void test_filemonitor_move_file_to_subdir() {
 ";
 
 
-    wait_until_tree_is_as_expected(tree, expected_after);
+    wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
 
     assert_equals("File monitor after move file to subdir ─ Include hidden files: F ─ Recursive: T", expected_after, output);
+    assert_file_system_changes(2);
 
-    free_whole_tree(tree);
     after();
 }
 
 static void test_filemonitor_move_file_to_parent_dir() {
     before();
 
-    GNode* tree = single_folder(FALSE, TRUE);
-    pretty_print_tree(tree, output);
+    monitor_test_tree = single_folder(FALSE, TRUE);
+    pretty_print_tree(monitor_test_tree, output);
 
     char* expected = KWHT TESTDIRNAME "  (5 children)" RESET "\n\
 ├─ bepa.png\n\
@@ -1370,20 +1364,20 @@ static void test_filemonitor_move_file_to_parent_dir() {
 ";
 
 
-    wait_until_tree_is_as_expected(tree, expected_after);
+    wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
 
     assert_equals("File monitor after move file in subdir to root ─ Include hidden files: F ─ Recursive: T", expected_after, output);
+    assert_file_system_changes(2);
 
-    free_whole_tree(tree);
     after();
 }
 
 static void test_filemonitor_move_dir_in_same_dir() {
     before();
 
-    GNode* tree = single_folder(FALSE, TRUE);
-    pretty_print_tree(tree, output);
+    monitor_test_tree = single_folder(FALSE, TRUE);
+    pretty_print_tree(monitor_test_tree, output);
 
     char* expected = KWHT TESTDIRNAME "  (5 children)" RESET "\n\
 ├─ bepa.png\n\
@@ -1439,12 +1433,12 @@ static void test_filemonitor_move_dir_in_same_dir() {
 ";
 
 
-    wait_until_tree_is_as_expected(tree, expected_after);
+    wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
 
     assert_equals("File monitor after move dir in root ─ Include hidden files: F ─ Recursive: T", expected_after, output);
+    assert_file_system_changes(2);
 
-    free_whole_tree(tree);
     after();
 }
 
@@ -1486,7 +1480,6 @@ gboolean file_monitor_tests(gpointer data) {
     test_filemonitor_move_file_to_subdir();
     test_filemonitor_move_file_to_parent_dir();
     test_filemonitor_move_dir_in_same_dir();
-
 
     g_main_loop_quit((GMainLoop*)data);
     return FALSE;

@@ -19,37 +19,36 @@
 #include "test-utils.h"
 
 
-
 static void test_singleFile_NonExistantFile() {
     before();
 
     char *path = NULL;
     GError *error = NULL;
 
-    assert_tree_is_null("Null file ─ Include hidden files: F ─ Recursive: F", create_tree_from_single_uri(path, FALSE, FALSE, &error));
+    assert_tree_is_null("Null file ─ Include hidden files: F ─ Recursive: F", create_tree_from_single_uri(path, FALSE, FALSE, NULL, NULL, &error));
     assert_error_is_null(error);
     g_clear_error(&error);
-    assert_tree_is_null("Null file ─ Include hidden files: F ─ Recursive: T", create_tree_from_single_uri(path, FALSE, TRUE,  &error));
+    assert_tree_is_null("Null file ─ Include hidden files: F ─ Recursive: T", create_tree_from_single_uri(path, FALSE, TRUE,  NULL, NULL, &error));
     assert_error_is_null(error);
     g_clear_error(&error);
-    assert_tree_is_null("Null file ─ Include hidden files: T ─ Recursive: F", create_tree_from_single_uri(path, TRUE,  FALSE, &error));
+    assert_tree_is_null("Null file ─ Include hidden files: T ─ Recursive: F", create_tree_from_single_uri(path, TRUE,  FALSE, NULL, NULL, &error));
     assert_error_is_null(error);
     g_clear_error(&error);
-    assert_tree_is_null("Null file ─ Include hidden files: T ─ Recursive: T", create_tree_from_single_uri(path, TRUE,  TRUE,  &error));
+    assert_tree_is_null("Null file ─ Include hidden files: T ─ Recursive: T", create_tree_from_single_uri(path, TRUE,  TRUE,  NULL, NULL, &error));
     assert_error_is_null(error);
     g_clear_error(&error);
 
     path = "non_existant_file.jpg";
-    assert_tree_is_null("Non existant file ─ Include hidden files: F ─ Recursive: F", create_tree_from_single_uri(path, FALSE, FALSE, &error));
+    assert_tree_is_null("Non existant file ─ Include hidden files: F ─ Recursive: F", create_tree_from_single_uri(path, FALSE, FALSE, NULL, NULL, &error));
     assert_error_is_not_null(error);
     g_clear_error(&error);
-    assert_tree_is_null("Non existant file ─ Include hidden files: F ─ Recursive: T", create_tree_from_single_uri(path, FALSE, TRUE,  &error));
+    assert_tree_is_null("Non existant file ─ Include hidden files: F ─ Recursive: T", create_tree_from_single_uri(path, FALSE, TRUE,  NULL, NULL, &error));
     assert_error_is_not_null(error);
     g_clear_error(&error);
-    assert_tree_is_null("Non existant file ─ Include hidden files: T ─ Recursive: F", create_tree_from_single_uri(path, TRUE,  FALSE, &error));
+    assert_tree_is_null("Non existant file ─ Include hidden files: T ─ Recursive: F", create_tree_from_single_uri(path, TRUE,  FALSE, NULL, NULL, &error));
     assert_error_is_not_null(error);
     g_clear_error(&error);
-    assert_tree_is_null("Non existant file ─ Include hidden files: T ─ Recursive: T", create_tree_from_single_uri(path, TRUE,  TRUE,  &error));
+    assert_tree_is_null("Non existant file ─ Include hidden files: T ─ Recursive: T", create_tree_from_single_uri(path, TRUE,  TRUE,  NULL, NULL, &error));
     assert_error_is_not_null(error);
     g_error_free(error);
 
@@ -66,7 +65,7 @@ static void test_singleFile_DontIncludeHidden_NotRecursive() {
 ";
 
     GNode *tree = get_tree(SINGLE_FILE, FALSE, FALSE);
-    assert_number_of_leaves_equals("#Leaves Single file ─ Include hidden files: F ─ Recursive: F", 3, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves Single file ─ Include hidden files: F ─ Recursive: F", 3, get_total_number_of_leaves(tree));
 
     assert_equals("Single file ─ Include hidden files: F ─ Recursive: F", expected, print_and_free_tree(tree));
 
@@ -101,7 +100,7 @@ static void test_singleFile_DontIncludeHidden_Recursive() {
 ";
 
     GNode *tree = get_tree(SINGLE_FILE, FALSE, TRUE);
-    assert_number_of_leaves_equals("#Leaves Single file ─ Include hidden files: F ─ Recursive: T", 14, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves Single file ─ Include hidden files: F ─ Recursive: T", 14, get_total_number_of_leaves(tree));
 
     assert_equals("Single file ─ Include hidden files: F ─ Recursive: T", expected, print_and_free_tree(tree));
 
@@ -120,7 +119,7 @@ static void test_singleFile_IncludeHidden_NotRecursive() {
 ";
 
     GNode *tree = get_tree(SINGLE_FILE, TRUE, FALSE);
-    assert_number_of_leaves_equals("#Leaves Single file ─ Include hidden files: T ─ Recursive: F", 5, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves Single file ─ Include hidden files: T ─ Recursive: F", 5, get_total_number_of_leaves(tree));
 
     assert_equals("Single file ─ Include hidden files: T ─ Recursive: F", expected, print_and_free_tree(tree));
 
@@ -160,7 +159,7 @@ static void test_singleFile_IncludeHidden_Recursive() {
 ";
 
     GNode *tree = get_tree(SINGLE_FILE, TRUE, TRUE);
-    assert_number_of_leaves_equals("#Leaves Single file ─ Include hidden files: T ─ Recursive: T", 18, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves Single file ─ Include hidden files: T ─ Recursive: T", 18, get_total_number_of_leaves(tree));
 
     assert_equals("Single file ─ Include hidden files: T ─ Recursive: T", expected, print_and_free_tree(tree));
 
@@ -179,7 +178,7 @@ static void test_singleFolder_DontIncludeHidden_NotRecursive() {
 ";
 
     GNode *tree = get_tree(SINGLE_FILE, FALSE, FALSE);
-    assert_number_of_leaves_equals("#Leaves Single folder ─ Include hidden files: F ─ Recursive: F", 3, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves Single folder ─ Include hidden files: F ─ Recursive: F", 3, get_total_number_of_leaves(tree));
 
     assert_equals("Single folder ─ Include hidden files: F ─ Recursive: F", expected, print_and_free_tree(tree));
 
@@ -213,7 +212,7 @@ static void test_singleFolder_DontIncludeHidden_Recursive() {
     └─ img3.png\n\
 ";
     GNode *tree = get_tree(SINGLE_FILE, FALSE, TRUE);
-    assert_number_of_leaves_equals("#Leaves Single folder ─ Include hidden files: F ─ Recursive: T", 14, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves Single folder ─ Include hidden files: F ─ Recursive: T", 14, get_total_number_of_leaves(tree));
 
     assert_equals("Single folder ─ Include hidden files: F ─ Recursive: T", expected, print_and_free_tree(tree));
 
@@ -231,7 +230,7 @@ static void test_singleFolder_IncludeHidden_NotRecursive() {
 └─ epa.png\n\
 ";
     GNode *tree = get_tree(SINGLE_FILE, TRUE, FALSE);
-    assert_number_of_leaves_equals("#Leaves Single folder ─ Include hidden files: T ─ Recursive: F", 5, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves Single folder ─ Include hidden files: T ─ Recursive: F", 5, get_total_number_of_leaves(tree));
 
     assert_equals("Single folder ─ Include hidden files: T ─ Recursive: F", expected, print_and_free_tree(tree));
 
@@ -270,7 +269,7 @@ static void test_singleFolder_IncludeHidden_Recursive() {
     └─ img3.png\n\
 ";
     GNode *tree = get_tree(SINGLE_FILE, TRUE, TRUE);
-    assert_number_of_leaves_equals("#Leaves Single folder ─ Include hidden files: T ─ Recursive: T", 18, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves Single folder ─ Include hidden files: T ─ Recursive: T", 18, get_total_number_of_leaves(tree));
 
     assert_equals("Single folder ─ Include hidden files: T ─ Recursive: T", expected, print_and_free_tree(tree));
 
@@ -291,7 +290,7 @@ static void test_uriList_DontIncludeHidden_NotRecursive() {
   └─ cepa.png\n\
 ";
     GNode *tree = get_tree(VALID_LIST, FALSE, FALSE);
-    assert_number_of_leaves_equals("#Leaves Uri List ─ Include hidden files: F ─ Recursive: F", 5, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves Uri List ─ Include hidden files: F ─ Recursive: F", 5, get_total_number_of_leaves(tree));
 
     assert_equals("Uri List ─ Include hidden files: F ─ Recursive: F", expected, print_and_free_tree(tree));
     reset_output();
@@ -307,14 +306,14 @@ static void test_uriList_DontIncludeHidden_NotRecursive() {
   └─ cepa.png\n\
 ";
     tree = get_tree(SEMI_INVALID_LIST, FALSE, FALSE);
-    assert_number_of_leaves_equals("#Leaves Uri List ─ Include hidden files: F ─ Recursive: F", 6, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves Uri List ─ Include hidden files: F ─ Recursive: F", 6, get_total_number_of_leaves(tree));
 
     assert_equals("Uri List ─ Some invalid files. Include hidden files: F ─ Recursive: F", expected, print_and_free_tree(tree));
     reset_output();
 
 
     tree = get_tree(COMPLETELY_INVALID_LIST, FALSE, FALSE);
-    assert_number_of_leaves_equals("#Leaves Uri List ─ Include hidden files: F ─ Recursive: F", 0, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves Uri List ─ Include hidden files: F ─ Recursive: F", 0, get_total_number_of_leaves(tree));
 
     assert_equals("Uri List ─ Only invalid files. Include hidden files: F ─ Recursive: F", KWHT "<ROOT>  (0 children)" RESET "\n", print_and_free_tree(tree));
 
@@ -345,7 +344,7 @@ static void test_uriList_DontIncludeHidden_Recursive() {
     └─ img3.png\n\
 ";
     GNode *tree = get_tree(VALID_LIST, FALSE, TRUE);
-    assert_number_of_leaves_equals("#Leaves Uri List ─ Include hidden files: F ─ Recursive: T", 12, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves Uri List ─ Include hidden files: F ─ Recursive: T", 12, get_total_number_of_leaves(tree));
 
     assert_equals("Uri List ─ Include hidden files: F ─ Recursive: T", expected, print_and_free_tree(tree));
     reset_output();
@@ -373,14 +372,14 @@ static void test_uriList_DontIncludeHidden_Recursive() {
     └─ img3.png\n\
 ";
     tree = get_tree(SEMI_INVALID_LIST, FALSE, TRUE);
-    assert_number_of_leaves_equals("#Leaves Uri List ─ Include hidden files: F ─ Recursive: T", 13, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves Uri List ─ Include hidden files: F ─ Recursive: T", 13, get_total_number_of_leaves(tree));
 
     assert_equals("Uri List ─ Some invalid files. Include hidden files: F ─ Recursive: T", expected, print_and_free_tree(tree));
     reset_output();
 
 
     tree = get_tree(COMPLETELY_INVALID_LIST, FALSE, TRUE);
-    assert_number_of_leaves_equals("#Leaves Uri List ─ Include hidden files: F ─ Recursive: T", 0, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves Uri List ─ Include hidden files: F ─ Recursive: T", 0, get_total_number_of_leaves(tree));
 
     assert_equals("Uri List ─ Only invalid files. Include hidden files: F ─ Recursive: T", KWHT "<ROOT>  (0 children)" RESET "\n", print_and_free_tree(tree));
 
@@ -401,7 +400,7 @@ static void test_uriList_IncludeHidden_NotRecursive() {
   └─ cepa.png\n\
 ";
     GNode *tree = get_tree(VALID_LIST, TRUE, FALSE);
-    assert_number_of_leaves_equals("#Leaves Uri List ─ Include hidden files: T ─ Recursive: F", 7, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves Uri List ─ Include hidden files: T ─ Recursive: F", 7, get_total_number_of_leaves(tree));
 
     assert_equals("Uri List ─ Include hidden files: T ─ Recursive: F", expected, print_and_free_tree(tree));
     reset_output();
@@ -419,14 +418,14 @@ static void test_uriList_IncludeHidden_NotRecursive() {
   └─ cepa.png\n\
 ";
     tree = get_tree(SEMI_INVALID_LIST, TRUE, FALSE);
-    assert_number_of_leaves_equals("#Leaves Uri List ─ Include hidden files: T ─ Recursive: F", 8, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves Uri List ─ Include hidden files: T ─ Recursive: F", 8, get_total_number_of_leaves(tree));
 
     assert_equals("Uri List ─ Some invalid files. Include hidden files: T ─ Recursive: F", expected, print_and_free_tree(tree));
     reset_output();
 
 
     tree = get_tree(COMPLETELY_INVALID_LIST, TRUE, FALSE);
-    assert_number_of_leaves_equals("#Leaves Uri List ─ Include hidden files: T ─ Recursive: F", 0, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves Uri List ─ Include hidden files: T ─ Recursive: F", 0, get_total_number_of_leaves(tree));
 
     assert_equals("Uri List ─ Only invalid files. Include hidden files: T ─ Recursive: F", KWHT "<ROOT>  (0 children)" RESET "\n", print_and_free_tree(tree));
 
@@ -459,7 +458,7 @@ static void test_uriList_IncludeHidden_Recursive() {
     └─ img3.png\n\
 ";
     GNode *tree = get_tree(VALID_LIST, TRUE, TRUE);
-    assert_number_of_leaves_equals("#Leaves Uri List ─ Include hidden files: T ─ Recursive: T", 14, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves Uri List ─ Include hidden files: T ─ Recursive: T", 14, get_total_number_of_leaves(tree));
 
     assert_equals("Uri List ─ Include hidden files: T ─ Recursive: T", expected, print_and_free_tree(tree));
     reset_output();
@@ -490,13 +489,13 @@ static void test_uriList_IncludeHidden_Recursive() {
     └─ img3.png\n\
 ";
     tree = get_tree(SEMI_INVALID_LIST, TRUE, TRUE);
-    assert_number_of_leaves_equals("#Leaves Uri List ─ Include hidden files: T ─ Recursive: F", 15, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves Uri List ─ Include hidden files: T ─ Recursive: F", 15, get_total_number_of_leaves(tree));
 
     assert_equals("Uri List ─ Some invalid files. Include hidden files: T ─ Recursive: T", expected, print_and_free_tree(tree));
     reset_output();
 
     tree = get_tree(COMPLETELY_INVALID_LIST, TRUE, TRUE);
-    assert_number_of_leaves_equals("#Leaves Uri List ─ Include hidden files: T ─ Recursive: F", 0, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves Uri List ─ Include hidden files: T ─ Recursive: F", 0, get_total_number_of_leaves(tree));
 
     assert_equals("Uri List ─ Only invalid files. Include hidden files: T ─ Recursive: T", KWHT "<ROOT>  (0 children)" RESET "\n", print_and_free_tree(tree));
 
@@ -569,7 +568,7 @@ static void test_getNextInTree_UriList_RootWithOnlyThreeDirs() {
     uri_list = g_slist_prepend(uri_list, TESTDIR "/cepa.jpg");
 
     GError *error = NULL;
-    GNode *tree = create_tree_from_uri_list(uri_list, TRUE, TRUE, &error);
+    GNode *tree = create_tree_from_uri_list(uri_list, TRUE, TRUE, NULL, NULL, &error);
     assert_error_is_null(error);
 
     assert_trees_equal("Get Next ─ Uri List ─ Input is Root with only three dirs", tree, get_next_in_tree(tree));
@@ -1556,9 +1555,9 @@ static void test_getNumberOfLeaves_NullIn() {
     gint position, total;
     get_leaf_position(NULL, &position, &total);
 
-    assert_number_of_leaves_equals("#Leaves ─ Null input", -1, position);
-    assert_number_of_leaves_equals("#Leaves ─ Null input", 0, total);
-    assert_number_of_leaves_equals("#Leaves ─ Null input", 0, get_total_number_of_leaves(NULL));
+    assert_numbers_equals("#Leaves ─ Null input", -1, position);
+    assert_numbers_equals("#Leaves ─ Null input", 0, total);
+    assert_numbers_equals("#Leaves ─ Null input", 0, get_total_number_of_leaves(NULL));
 
     after();
 }
@@ -1581,16 +1580,16 @@ static void test_getNumberOfLeaves_SingleFileNonRecursive_ReturnSameNumberNoMatt
 // └─ epa.png
 
     get_leaf_position(node, &position, &total);
-    assert_number_of_leaves_equals("#Leaves ─ Tree root as input ─ position", 0, position);
-    assert_number_of_leaves_equals("#Leaves ─ Tree root as input ─ total", 5, total);
+    assert_numbers_equals("#Leaves ─ Tree root as input ─ position", 0, position);
+    assert_numbers_equals("#Leaves ─ Tree root as input ─ total", 5, total);
 
 
     node = tree;
-    assert_number_of_leaves_equals("#Leaves ─ Single file, non-recursive ─ Different places in tree", 5, get_total_number_of_leaves(node));
+    assert_numbers_equals("#Leaves ─ Single file, non-recursive ─ Different places in tree", 5, get_total_number_of_leaves(node));
     node = iteration_test_forward(node, ".apa.png");
-    assert_number_of_leaves_equals("#Leaves ─ Single file, non-recursive ─ Different places in tree", 5, get_total_number_of_leaves(node));
+    assert_numbers_equals("#Leaves ─ Single file, non-recursive ─ Different places in tree", 5, get_total_number_of_leaves(node));
     node = iteration_test_forward(node, ".depa.gif");
-    assert_number_of_leaves_equals("#Leaves ─ Single file, non-recursive ─ Different places in tree", 5, get_total_number_of_leaves(node));
+    assert_numbers_equals("#Leaves ─ Single file, non-recursive ─ Different places in tree", 5, get_total_number_of_leaves(node));
 
     free_whole_tree(tree);
     after();
@@ -1628,106 +1627,106 @@ static void test_getNumberOfLeaves_UriListRecursive_ReturnSameNumberNoMatterWher
 
     tree = get_root_node(tree);
     get_leaf_position(tree, &position, &total);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 0, position);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
-    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves ─ Node iteration ─ position", 0, position);
+    assert_numbers_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_numbers_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
 
     tree = iteration_test_forward(tree, ".apa.png");
     get_leaf_position(tree, &position, &total);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 1, position);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
-    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves ─ Node iteration ─ position", 1, position);
+    assert_numbers_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_numbers_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
 
     tree = iteration_test_forward(tree, ".depa.gif");
     get_leaf_position(tree, &position, &total);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 2, position);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
-    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves ─ Node iteration ─ position", 2, position);
+    assert_numbers_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_numbers_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
 
     tree = iteration_test_forward(tree, "bepa.png");
     get_leaf_position(tree, &position, &total);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 3, position);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
-    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves ─ Node iteration ─ position", 3, position);
+    assert_numbers_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_numbers_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
 
     tree = iteration_test_forward(tree, "cepa.jpg");
     get_leaf_position(tree, &position, &total);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 4, position);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
-    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves ─ Node iteration ─ position", 4, position);
+    assert_numbers_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_numbers_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
 
     tree = iteration_test_forward(tree, "apa.png");
     get_leaf_position(tree, &position, &total);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 5, position);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
-    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves ─ Node iteration ─ position", 5, position);
+    assert_numbers_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_numbers_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
 
     tree = iteration_test_forward(tree, "bepa.png");
     get_leaf_position(tree, &position, &total);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 6, position);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
-    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves ─ Node iteration ─ position", 6, position);
+    assert_numbers_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_numbers_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
 
     tree = iteration_test_forward(tree, "cepa.png");
     get_leaf_position(tree, &position, &total);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 7, position);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
-    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves ─ Node iteration ─ position", 7, position);
+    assert_numbers_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_numbers_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
 
     tree = iteration_test_forward(tree, "img0.png");
     get_leaf_position(tree, &position, &total);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 8, position);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
-    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves ─ Node iteration ─ position", 8, position);
+    assert_numbers_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_numbers_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
 
     tree = iteration_test_forward(tree, "img1.png");
     get_leaf_position(tree, &position, &total);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 9, position);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
-    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves ─ Node iteration ─ position", 9, position);
+    assert_numbers_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_numbers_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
 
     tree = iteration_test_forward(tree, "img2.png");
     get_leaf_position(tree, &position, &total);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 10, position);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
-    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves ─ Node iteration ─ position", 10, position);
+    assert_numbers_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_numbers_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
 
     tree = iteration_test_forward(tree, "img0.png");
     get_leaf_position(tree, &position, &total);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 11, position);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
-    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves ─ Node iteration ─ position", 11, position);
+    assert_numbers_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_numbers_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
 
     tree = iteration_test_forward(tree, "img1.png");
     get_leaf_position(tree, &position, &total);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 12, position);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
-    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves ─ Node iteration ─ position", 12, position);
+    assert_numbers_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_numbers_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
 
     tree = iteration_test_forward(tree, "img2.png");
     get_leaf_position(tree, &position, &total);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 13, position);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
-    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves ─ Node iteration ─ position", 13, position);
+    assert_numbers_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_numbers_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
 
     tree = iteration_test_forward(tree, "img3.png");
     get_leaf_position(tree, &position, &total);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 14, position);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
-    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves ─ Node iteration ─ position", 14, position);
+    assert_numbers_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_numbers_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
 
     // Loop from the beginning.
     tree = iteration_test_forward(tree, ".apa.png");
     get_leaf_position(tree, &position, &total);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 1, position);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
-    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves ─ Node iteration ─ position", 1, position);
+    assert_numbers_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_numbers_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
 
     tree = iteration_test_forward(tree, ".depa.gif");
     get_leaf_position(tree, &position, &total);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ position", 2, position);
-    assert_number_of_leaves_equals("#Leaves ─ Node iteration ─ total", 14, total);
-    assert_number_of_leaves_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
+    assert_numbers_equals("#Leaves ─ Node iteration ─ position", 2, position);
+    assert_numbers_equals("#Leaves ─ Node iteration ─ total", 14, total);
+    assert_numbers_equals("#Leaves ─ UriList, recursive ─ Different places in tree", 14, get_total_number_of_leaves(tree));
 
     free_whole_tree(tree);
 

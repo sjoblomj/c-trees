@@ -20,7 +20,27 @@
 
 
 const int TIMEOUT = 5;
+int file_system_changes = 0;
 int errors = 0;
+gpointer expected_callback_data = (gpointer) 1;
+
+
+void file_system_changed_callback(gboolean deleted, char *path, GNode *changed_node, GNode *root, gpointer data) {
+    file_system_changes++;
+
+    if(!deleted && changed_node != NULL) {
+        assert_equals("'path' in callback should be equal to that of the changed_node", path, VNR_FILE(changed_node->data)->path);
+    }
+    assert_numbers_equals("Callback data should be as expected", (intptr_t) expected_callback_data, (intptr_t) data);
+
+    if(deleted && changed_node == root) {
+        // The root was deleted.
+        monitor_test_tree = NULL;
+    }
+    if(monitor_test_tree != NULL) {
+        monitor_test_tree = get_next_in_tree(root);
+    }
+}
 
 
 
@@ -29,7 +49,7 @@ GNode* single_file(gboolean include_hidden, gboolean recursive) {
     char *path = TESTDIR "/bepa.png";
     GError *error = NULL;
 
-    tree = create_tree_from_single_uri(path, include_hidden, recursive, &error);
+    tree = create_tree_from_single_uri(path, include_hidden, recursive, file_system_changed_callback, expected_callback_data, &error);
     assert_error_is_null(error);
     return tree;
 }
@@ -39,7 +59,7 @@ GNode* single_folder(gboolean include_hidden, gboolean recursive) {
     char *path = TESTDIR;
     GError *error = NULL;
 
-    tree = create_tree_from_single_uri(path, include_hidden, recursive, &error);
+    tree = create_tree_from_single_uri(path, include_hidden, recursive, file_system_changed_callback, expected_callback_data, &error);
     assert_error_is_null(error);
     return tree;
 }
@@ -57,7 +77,7 @@ GNode* uri_list(gboolean include_hidden, gboolean recursive) {
 
     GError *error = NULL;
 
-    tree = create_tree_from_uri_list(uri_list, include_hidden, recursive, &error);
+    tree = create_tree_from_uri_list(uri_list, include_hidden, recursive, file_system_changed_callback, expected_callback_data, &error);
     assert_error_is_null(error);
     return tree;
 }
@@ -78,7 +98,7 @@ GNode* uri_list_with_some_invalid_entries(gboolean include_hidden, gboolean recu
 
     GError *error = NULL;
 
-    tree = create_tree_from_uri_list(uri_list, include_hidden, recursive, &error);
+    tree = create_tree_from_uri_list(uri_list, include_hidden, recursive, file_system_changed_callback, expected_callback_data, &error);
     assert_error_is_null(error);
     return tree;
 }
@@ -92,7 +112,7 @@ GNode* uri_list_with_only_invalid_entries(gboolean include_hidden, gboolean recu
 
     GError *error = NULL;
 
-    tree = create_tree_from_uri_list(uri_list, include_hidden, recursive, &error);
+    tree = create_tree_from_uri_list(uri_list, include_hidden, recursive, file_system_changed_callback, expected_callback_data, &error);
     assert_error_is_null(error);
     return tree;
 }
@@ -104,7 +124,7 @@ GNode* uri_list_with_no_entries(gboolean include_hidden, gboolean recursive) {
 
     GError *error = NULL;
 
-    tree = create_tree_from_uri_list(uri_list, include_hidden, recursive, &error);
+    tree = create_tree_from_uri_list(uri_list, include_hidden, recursive, file_system_changed_callback, expected_callback_data, &error);
     assert_error_is_null(error);
     return tree;
 }
@@ -259,6 +279,7 @@ void remove_file_structure() {
 
 void before() {
     output = (char*) malloc(sizeof(char) * OUTPUTSIZE);
+    file_system_changes = 0;
     create_file_structure();
 }
 
@@ -267,6 +288,10 @@ void after() {
         free(output);
     }
     output = NULL;
+    if(monitor_test_tree != NULL) {
+        free_whole_tree(monitor_test_tree);
+        monitor_test_tree = NULL;
+    }
     remove_file_structure();
 }
 
@@ -289,7 +314,7 @@ void assert_equals(char* description, char* expected, char* actual) {
     }
 }
 
-void assert_number_of_leaves_equals(char* description, int expected, int actual) {
+void assert_numbers_equals(char* description, int expected, int actual) {
     if(expected == actual) {
         printf("  " KGRN "[PASS]  %s\n" RESET, description);
     } else {
@@ -338,6 +363,39 @@ void assert_error_is_not_null(GError* error) {
         printf("  " KRED "[FAIL]  Error should be set!\n" RESET);
         fprintf(stderr, "* Error should be set!\n");
         errors++;
+    }
+}
+
+void assert_file_system_changes(int expected) {
+    if(expected != file_system_changes) {
+        printf("\n");
+        printf("  " KRED "[FAIL]  %s\n" RESET, "Mismatch in number of file system changes");
+        printf("Expected: %i,   Actual: %i\n\n", expected, file_system_changes);
+        errors++;
+    }
+}
+
+void wait_until_tree_is_null() {
+    clock_t start = clock();
+    while((clock() - start) / CLOCKS_PER_SEC < TIMEOUT) {
+
+        g_main_context_iteration(NULL, FALSE);
+
+        if(monitor_test_tree == NULL) {
+            break;
+        }
+    }
+}
+
+void wait_until_file_system_changes_is_as_expected(int expected) {
+    clock_t start = clock();
+    while((clock() - start) / CLOCKS_PER_SEC < TIMEOUT) {
+
+        g_main_context_iteration(NULL, FALSE);
+
+        if(file_system_changes == expected) {
+            break;
+        }
     }
 }
 

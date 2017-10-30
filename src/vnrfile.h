@@ -22,6 +22,7 @@
 #define __VNR_FILE_H__
 
 #include <gtk/gtk.h>
+#include "callback-interface.h"
 
 G_BEGIN_DECLS
 
@@ -35,13 +36,6 @@ G_BEGIN_DECLS
 typedef struct _VnrFile VnrFile;
 typedef struct _VnrFileClass VnrFileClass;
 
-struct Context {
-    gboolean include_hidden;
-    gboolean include_dirs;
-    gboolean set_file_monitor_for_file;
-    GNode* tree;
-};
-
 
 struct _VnrFile {
     GObject parent;
@@ -53,7 +47,7 @@ struct _VnrFile {
     gboolean is_directory;
 
     GFileMonitor *monitor;
-    struct Context *context;
+    struct MonitoringData *monitoring_data;
 };
 
 struct _VnrFileClass {

@@ -43,6 +43,7 @@
 #define TESTDIR "/tmp/" TESTDIRNAME
 
 char* output;
+GNode* monitor_test_tree;
 
 typedef enum {SINGLE_FILE, SINGLE_FOLDER, VALID_LIST, SEMI_INVALID_LIST, COMPLETELY_INVALID_LIST} inputtype;
 
@@ -67,11 +68,14 @@ void before();
 void after();
 void reset_output();
 void assert_equals(char* description, char* expected, char* actual);
-void assert_number_of_leaves_equals(char* description, int expected, int actual);
+void assert_numbers_equals(char* description, int expected, int actual);
 void assert_trees_equal(char* description, GNode* expected, GNode* actual);
 void assert_tree_is_null(char* description, GNode* tree);
 void assert_error_is_null(GError* error);
 void assert_error_is_not_null(GError* error);
+void assert_file_system_changes(int expected);
+void wait_until_tree_is_null();
 void wait_until_tree_is_as_expected(GNode* tree, char* expected);
+void wait_until_file_system_changes_is_as_expected(int expected);
 
 #endif /* __TEST_UTILS_H__ */
