@@ -128,7 +128,12 @@ static gboolean vnr_file_is_supported_mime_type(const char *mime_type) {
 }
 
 
-static struct Preference_Settings* create_preference_settings(gboolean include_hidden, gboolean  include_dirs, gboolean set_file_monitor_for_file, callback cb, gpointer cb_data) {
+static struct Preference_Settings* create_preference_settings(gboolean include_hidden,
+                                                              gboolean include_dirs,
+                                                              gboolean set_file_monitor_for_file,
+                                                              callback cb,
+                                                              gpointer cb_data) {
+
     struct Preference_Settings* preference_settings = malloc(sizeof(*preference_settings));
     preference_settings->include_hidden = include_hidden;
     preference_settings->include_dirs = include_dirs;
@@ -355,10 +360,10 @@ vnr_append_file_and_dir_lists_to_tree(GNode    **tree,
     }
 
     struct Preference_Settings* dir_preference_settings = create_preference_settings(preference_settings->include_hidden,
-                                                                                        preference_settings->include_dirs,
-                                                                                        FALSE,
-                                                                                        preference_settings->cb,
-                                                                                        preference_settings->cb_data);
+                                                                                     preference_settings->include_dirs,
+                                                                                     FALSE,
+                                                                                     preference_settings->cb,
+                                                                                     preference_settings->cb_data);
     while(*dir_list != NULL) {
 
         subtree = vnr_file_dir_content_to_list((*dir_list)->data,
@@ -487,13 +492,22 @@ vnr_get_parent_file_path(char *path)
  * subdirectories, include them as well and set file monitors on them.
  * @error@ will contain any errors that occurred in the process.
  */
-GNode* create_tree_from_single_uri(char *uri, gboolean include_hidden, gboolean include_dirs, callback cb, gpointer cb_data, GError **error)
+GNode* create_tree_from_single_uri(char *uri,
+                                   gboolean include_hidden,
+                                   gboolean include_dirs,
+                                   callback cb,
+                                   gpointer cb_data,
+                                   GError **error)
 {
     GNode *tree = NULL;
     VnrFile* vnrfile;
     gboolean file_info_ok;
 
-    struct Preference_Settings* preference_settings = create_preference_settings(include_hidden, include_dirs, FALSE, cb, cb_data);
+    struct Preference_Settings* preference_settings = create_preference_settings(include_hidden,
+                                                                                 include_dirs,
+                                                                                 FALSE,
+                                                                                 cb,
+                                                                                 cb_data);
 
     file_info_ok = vnr_file_get_file_info(uri,
                                           &vnrfile,
@@ -583,14 +597,23 @@ GNode* create_tree_from_single_uri(char *uri, gboolean include_hidden, gboolean 
  * subdirectories, include them as well and set file monitors on them.
  * @error@ will contain any errors that occurred in the process.
  */
-GNode* create_tree_from_uri_list(GSList *uri_list, gboolean include_hidden, gboolean include_dirs, callback cb, gpointer cb_data, GError **error)
+GNode* create_tree_from_uri_list(GSList *uri_list,
+                                 gboolean include_hidden,
+                                 gboolean include_dirs,
+                                 callback cb,
+                                 gpointer cb_data,
+                                 GError **error)
 {
     GNode *tree      = g_node_new(NULL);
     GList *dir_list  = NULL;
     GList *file_list = NULL;
 
 
-    struct Preference_Settings* dir_preference_settings = create_preference_settings(include_hidden, TRUE, TRUE, cb, cb_data);
+    struct Preference_Settings* dir_preference_settings = create_preference_settings(include_hidden,
+                                                                                     TRUE,
+                                                                                     TRUE,
+                                                                                     cb,
+                                                                                     cb_data);
 
     while(uri_list != NULL) {
 
@@ -603,7 +626,11 @@ GNode* create_tree_from_uri_list(GSList *uri_list, gboolean include_hidden, gboo
         uri_list = g_slist_next(uri_list);
     }
 
-    struct Preference_Settings* preference_settings = create_preference_settings(include_hidden, include_dirs, TRUE, cb, cb_data);
+    struct Preference_Settings* preference_settings = create_preference_settings(include_hidden,
+                                                                                 include_dirs,
+                                                                                 TRUE,
+                                                                                 cb,
+                                                                                 cb_data);
 
     vnr_append_file_and_dir_lists_to_tree(&tree,
                                           &dir_list,
@@ -625,7 +652,8 @@ GNode* create_tree_from_uri_list(GSList *uri_list, gboolean include_hidden, gboo
 
 static gboolean is_leaf(GNode *node) {
     VnrFile* vnrfile = node->data;
-    return vnrfile != NULL && !vnrfile->is_directory; // A leaf in the tree can represent an empty directory. Otherwise we could do G_NODE_IS_LEAF(node)
+    return vnrfile != NULL && !vnrfile->is_directory; // A leaf in the tree
+        // can represent an empty directory. Otherwise we could do G_NODE_IS_LEAF(node)
 }
 
 static gboolean has_more_siblings_in_direction(GNode *tree, Direction direction) {
