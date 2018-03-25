@@ -31,7 +31,8 @@ void file_system_changed_callback(gboolean deleted, char *path, GNode *changed_n
     if(!deleted && changed_node != NULL) {
         assert_equals("'path' in callback should be equal to that of the changed_node", path, VNR_FILE(changed_node->data)->path);
     }
-    assert_numbers_equals("Callback data should be as expected", (intptr_t) expected_callback_data, (intptr_t) data);
+    assert_numbers_equals("Callback data should be as expected", (int) (intptr_t) expected_callback_data,
+                          (int) (intptr_t) data);
 
     if(deleted && changed_node == root) {
         // The root was deleted.
@@ -46,28 +47,33 @@ void file_system_changed_callback(gboolean deleted, char *path, GNode *changed_n
 
 GNode* single_file(gboolean include_hidden, gboolean recursive) {
     GNode *tree = NULL;
-    char *path = TESTDIR "/bepa.png";
     GError *error = NULL;
+    char *path = TESTDIR "/bepa.png";
 
     tree = create_tree_from_single_uri(path, include_hidden, recursive, file_system_changed_callback, expected_callback_data, &error);
+
     assert_error_is_null(error);
+    free(error);
     return tree;
 }
 
 GNode* single_folder(gboolean include_hidden, gboolean recursive) {
     GNode *tree = NULL;
-    char *path = TESTDIR;
     GError *error = NULL;
+    char *path = TESTDIR;
 
     tree = create_tree_from_single_uri(path, include_hidden, recursive, file_system_changed_callback, expected_callback_data, &error);
+
     assert_error_is_null(error);
+    free(error);
     return tree;
 }
 
 GNode* uri_list(gboolean include_hidden, gboolean recursive) {
     GNode *tree = NULL;
-
+    GError *error = NULL;
     GSList *uri_list = NULL;
+
     uri_list = g_slist_prepend(uri_list, TESTDIR "/.apa.png");
     uri_list = g_slist_prepend(uri_list, TESTDIR "/bepa.png");
     uri_list = g_slist_prepend(uri_list, TESTDIR "/cepa.jpg");
@@ -75,17 +81,20 @@ GNode* uri_list(gboolean include_hidden, gboolean recursive) {
     uri_list = g_slist_prepend(uri_list, TESTDIR "/test.txt");
     uri_list = g_slist_prepend(uri_list, TESTDIR "/dir_two");
 
-    GError *error = NULL;
 
     tree = create_tree_from_uri_list(uri_list, include_hidden, recursive, file_system_changed_callback, expected_callback_data, &error);
+
+    g_slist_free(uri_list);
     assert_error_is_null(error);
+    free(error);
     return tree;
 }
 
 GNode* uri_list_with_some_invalid_entries(gboolean include_hidden, gboolean recursive) {
     GNode *tree = NULL;
-
+    GError *error = NULL;
     GSList *uri_list = NULL;
+
     uri_list = g_slist_prepend(uri_list, TESTDIR "/.apa.png");
     uri_list = g_slist_prepend(uri_list, TESTDIR "/bepa.png");
     uri_list = g_slist_prepend(uri_list, TESTDIR "/NON_EXISTANT_FILE.jpg");
@@ -96,36 +105,40 @@ GNode* uri_list_with_some_invalid_entries(gboolean include_hidden, gboolean recu
     uri_list = g_slist_prepend(uri_list, TESTDIR "/dir_two");
     uri_list = g_slist_prepend(uri_list, TESTDIR "/NON_EXISTANT_DIR");
 
-    GError *error = NULL;
-
     tree = create_tree_from_uri_list(uri_list, include_hidden, recursive, file_system_changed_callback, expected_callback_data, &error);
+
+    g_slist_free(uri_list);
     assert_error_is_null(error);
+    free(error);
     return tree;
 }
 
 GNode* uri_list_with_only_invalid_entries(gboolean include_hidden, gboolean recursive) {
     GNode *tree = NULL;
-
+    GError *error = NULL;
     GSList *uri_list = NULL;
+
     uri_list = g_slist_prepend(uri_list, TESTDIR "/NON_EXISTANT_FILE.jpg");
     uri_list = g_slist_prepend(uri_list, TESTDIR "/NON_EXISTANT_DIR");
 
-    GError *error = NULL;
 
     tree = create_tree_from_uri_list(uri_list, include_hidden, recursive, file_system_changed_callback, expected_callback_data, &error);
+
+    g_slist_free(uri_list);
     assert_error_is_null(error);
+    free(error);
     return tree;
 }
 
 GNode* uri_list_with_no_entries(gboolean include_hidden, gboolean recursive) {
     GNode *tree = NULL;
-
+    GError *error = NULL;
     GSList *uri_list = NULL;
 
-    GError *error = NULL;
-
     tree = create_tree_from_uri_list(uri_list, include_hidden, recursive, file_system_changed_callback, expected_callback_data, &error);
+
     assert_error_is_null(error);
+    free(error);
     return tree;
 }
 
@@ -154,12 +167,6 @@ char* print_and_free_tree(GNode *tree) {
 }
 
 
-char* get_printed_tree(inputtype type, gboolean include_hidden, gboolean recursive) {
-    GNode *tree = get_tree(type, include_hidden, recursive);
-    return print_and_free_tree(tree);
-}
-
-
 
 ///////////////////////////////
 
@@ -173,7 +180,37 @@ void create_dir(const char *path) {
 }
 
 void create_file(const char *path) {
-    fclose(fopen(path, "w"));
+    char *dot = strrchr(path, '.');
+    if(dot && (!strcmp(dot, ".jpg") || !strcmp(dot, ".png") || !strcmp(dot, ".gif"))) {
+        // Write binary image data.
+
+        size_t size = 73;
+        int img[size];
+        int i = 0;
+        img[i++] = 0x89; img[i++] = 0x50; img[i++] = 0x4e; img[i++] = 0x47; img[i++] = 0x0d; img[i++] = 0x0a;
+        img[i++] = 0x1a; img[i++] = 0x0a; img[i++] = 0x00; img[i++] = 0x00; img[i++] = 0x00; img[i++] = 0x0d;
+        img[i++] = 0x49; img[i++] = 0x48; img[i++] = 0x44; img[i++] = 0x52; img[i++] = 0x00; img[i++] = 0x00;
+        img[i++] = 0x00; img[i++] = 0x01; img[i++] = 0x00; img[i++] = 0x00; img[i++] = 0x00; img[i++] = 0x01;
+        img[i++] = 0x01; img[i++] = 0x00; img[i++] = 0x00; img[i++] = 0x00; img[i++] = 0x00; img[i++] = 0x37;
+        img[i++] = 0x6e; img[i++] = 0xf9; img[i++] = 0x24; img[i++] = 0x00; img[i++] = 0x00; img[i++] = 0x00;
+        img[i++] = 0x10; img[i++] = 0x49; img[i++] = 0x44; img[i++] = 0x41; img[i++] = 0x54; img[i++] = 0x78;
+        img[i++] = 0x9c; img[i++] = 0x62; img[i++] = 0x60; img[i++] = 0x01; img[i++] = 0x00; img[i++] = 0x00;
+        img[i++] = 0x00; img[i++] = 0xff; img[i++] = 0xff; img[i++] = 0x03; img[i++] = 0x00; img[i++] = 0x00;
+        img[i++] = 0x06; img[i++] = 0x00; img[i++] = 0x05; img[i++] = 0x57; img[i++] = 0xbf; img[i++] = 0xab;
+        img[i++] = 0xd4; img[i++] = 0x00; img[i++] = 0x00; img[i++] = 0x00; img[i++] = 0x00; img[i++] = 0x49;
+        img[i++] = 0x45; img[i++] = 0x4e; img[i++] = 0x44; img[i++] = 0xae; img[i++] = 0x42; img[i++] = 0x60;
+        img[i]   = 0x82;
+
+        FILE *fh = fopen(path, "wb");
+        if(fh != NULL) {
+            fwrite(&img, sizeof(img), size, fh);
+            fclose(fh);
+        }
+
+    } else {
+        // Create empty file
+        fclose(fopen(path, "w"));
+    }
 }
 
 void create_file_structure() {
@@ -366,8 +403,12 @@ void assert_error_is_not_null(GError* error) {
     }
 }
 
-void assert_file_system_changes(int expected) {
-    if(expected != file_system_changes) {
+// Due to the non-deterministic way that file monitors are triggered, there could be several triggers for
+// one action, if e.g. a directory and its root both have filemonitors, and the directory is deleted.
+// Test the minimum amount of expected file system changes, and let the underlying file system raise as
+// many triggers as it needs.
+void assert_file_system_changes_at_least(int expected) {
+    if(file_system_changes < expected) {
         printf("\n");
         printf("  " KRED "[FAIL]  %s\n" RESET, "Mismatch in number of file system changes");
         printf("Expected: %i,   Actual: %i\n\n", expected, file_system_changes);

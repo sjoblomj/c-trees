@@ -20,14 +20,7 @@
 
 #include "vnrfile.h"
 
-#include <libintl.h>
-#include <glib/gi18n.h>
 #include <stdlib.h>
-#define _(String) gettext (String)
-
-#include <gtk/gtk.h>
-#include <gio/gio.h>
-#include <gdk/gdkpixbuf.h>
 
 #define UNUSED(x) (void)(x)
 
@@ -47,8 +40,8 @@ VnrFile * vnr_file_new() {
 }
 
 static void vnr_file_set_display_name(VnrFile *vnr_file, char *display_name) {
-    vnr_file->display_name = display_name;
-    vnr_file->display_name_collate = g_utf8_collate_key_for_filename(display_name, -1);
+    vnr_file->display_name = g_strdup(display_name);
+    vnr_file->display_name_collate = g_utf8_collate_key_for_filename(vnr_file->display_name, -1);
 }
 
 
@@ -63,11 +56,10 @@ static void vnr_file_set_file_info(VnrFile *vnrfile,
 }
 
 VnrFile* vnr_file_create_new(gchar *path,
-                    char *display_name,
-                    gboolean is_directory)
+                             char *display_name,
+                             gboolean is_directory)
 {
-    VnrFile *vnrfile;
-    vnrfile = vnr_file_new();
+    VnrFile *vnrfile = vnr_file_new();
     vnr_file_set_file_info(vnrfile, path, display_name, is_directory);
     return vnrfile;
 }
@@ -85,6 +77,7 @@ void vnr_file_destroy_data(VnrFile *vnrfile) {
     }
     g_free(vnrfile->path);
     g_free(vnrfile->display_name);
+    g_free((gpointer) vnrfile->display_name_collate);
     g_object_unref(vnrfile);
 }
 

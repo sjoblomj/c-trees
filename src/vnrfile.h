@@ -22,6 +22,9 @@
 #define __VNR_FILE_H__
 
 #include <gtk/gtk.h>
+#include <glibconfig.h>
+#include <gobject/gobject.h>
+#include <gio/giotypes.h>
 #include "callback-interface.h"
 
 G_BEGIN_DECLS

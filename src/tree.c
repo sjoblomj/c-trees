@@ -18,14 +18,10 @@
  * along with c-trees.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <libintl.h>
 #include <glib/gi18n.h>
 #include <stdlib.h>
-#define _(String) gettext (String)
 
 #include <gtk/gtk.h>
-#include <gio/gio.h>
-#include <gdk/gdkpixbuf.h>
 
 #include "tree.h"
 
@@ -59,6 +55,12 @@ vnr_file_get_file_info(char *filepath,
 static void
 vnr_file_set_file_monitor(GNode* tree, struct Preference_Settings* preference_settings);
 
+
+static void
+add_file_list_to_tree(GNode **tree, GList **file_list, struct Preference_Settings *preference_settings);
+
+static void
+add_directory_list_to_tree(GNode **tree, GList **dir_list, struct Preference_Settings *preference_settings, GError **error);
 
 GList * supported_mime_types;
 
@@ -193,6 +195,7 @@ vnr_file_directory_updated(GFileMonitor       *monitor,
                                    include_hidden,
                                    NULL);
 
+            gboolean file_added_to_tree = FALSE;
             GNode *newnode = NULL;
             if(vnr_file_is_directory(vnrfile_new)) {
                 if(include_dirs) {
@@ -208,18 +211,23 @@ vnr_file_directory_updated(GFileMonitor       *monitor,
                     add_node_in_tree(tree, newnode);
                     vnr_file_set_file_monitor(newnode, preference_settings);
 
+                    file_added_to_tree = TRUE;
                     free(preference_settings);
                 }
 
-            } else {
+            } else if(vnr_file_is_image_file(vnrfile_new)) {
                 newnode = g_node_new(vnrfile_new);
                 add_node_in_tree(tree, newnode);
+                file_added_to_tree = TRUE;
             }
 
-            if(tree_changed_callback != NULL) {
+            if(file_added_to_tree && tree_changed_callback != NULL) {
                 tree_changed_callback(FALSE, file_path, newnode, root, cb_data);
             }
 
+            if(!file_added_to_tree) {
+                vnr_file_destroy_data(vnrfile_new);
+            }
             g_free(file_path);
             break;
 
@@ -280,7 +288,7 @@ vnr_file_get_file_info(char *filepath,
     const char *mimetype;
     char* display_name;
     gboolean file_info_success;
-    gboolean is_directory = FALSE;
+    gboolean is_directory;
     gboolean supported_mime_type = FALSE;
 
     *vnrfile = NULL;
@@ -290,7 +298,7 @@ vnr_file_get_file_info(char *filepath,
                                  G_FILE_ATTRIBUTE_STANDARD_DISPLAY_NAME","
                                  G_FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE","
                                  G_FILE_ATTRIBUTE_STANDARD_IS_HIDDEN,
-                                 0, NULL, error);
+                                 (GFileQueryInfoFlags) 0, NULL, error);
     file_info_success = fileinfo != NULL;
 
     if(file_info_success && (include_hidden || !g_file_info_get_is_hidden(fileinfo))) {
@@ -301,11 +309,14 @@ vnr_file_get_file_info(char *filepath,
             mimetype = g_file_info_get_content_type(fileinfo);
             supported_mime_type = vnr_file_is_supported_mime_type(mimetype);
         }
-        g_object_unref(fileinfo);
 
         if(is_directory || supported_mime_type) {
             *vnrfile = vnr_file_create_new(filepath, display_name, is_directory);
         }
+        free(display_name);
+    }
+    if(file_info_success) {
+        g_object_unref(fileinfo);
     }
     g_object_unref(file);
     return file_info_success;
@@ -313,22 +324,20 @@ vnr_file_get_file_info(char *filepath,
 
 
 static void
-vnr_file_add_file_to_lists_if_possible(gchar *filepath,
-                                       GList **dir_list,
-                                       GList **file_list,
+vnr_file_add_file_to_lists_if_possible(gchar   *filepath,
+                                       GList  **dir_list,
+                                       GList  **file_list,
                                        struct Preference_Settings* preference_settings,
                                        GError **error)
 {
-    gboolean file_info_ok;
     VnrFile *vnrfile;
-
-    file_info_ok = vnr_file_get_file_info(filepath,
-                                          &vnrfile,
-                                          preference_settings->include_hidden,
-                                          error);
+    gboolean file_info_ok = vnr_file_get_file_info(filepath,
+                                                   &vnrfile,
+                                                   preference_settings->include_hidden,
+                                                   error);
 
     if(file_info_ok && vnr_file_is_directory(vnrfile) && preference_settings->include_dirs) {
-        *dir_list  = g_list_prepend(*dir_list,  vnrfile);
+        *dir_list  = g_list_prepend( *dir_list, vnrfile);
     } else if(file_info_ok && vnr_file_is_image_file(vnrfile)) {
         *file_list = g_list_prepend(*file_list, vnrfile);
     } else if(vnrfile != NULL) {
@@ -343,13 +352,21 @@ vnr_append_file_and_dir_lists_to_tree(GNode    **tree,
                                       struct Preference_Settings* preference_settings,
                                       GError   **error)
 {
-    GNode *subtree = NULL;
 
-    *dir_list  = g_list_sort( *dir_list, vnr_file_list_compare);
+    add_file_list_to_tree(tree, file_list, preference_settings);
+    add_directory_list_to_tree(tree, dir_list, preference_settings, error);
+
+}
+
+static void
+add_file_list_to_tree(GNode **tree,
+                      GList **file_list,
+                      struct Preference_Settings *preference_settings) {
+
     *file_list = g_list_sort(*file_list, vnr_file_list_compare);
 
     while(*file_list != NULL) {
-        subtree = g_node_new((*file_list)->data);
+        GNode *subtree = g_node_new((*file_list)->data);
         add_node_in_tree(*tree, subtree);
 
         if(preference_settings->set_file_monitor_for_file) {
@@ -358,6 +375,15 @@ vnr_append_file_and_dir_lists_to_tree(GNode    **tree,
 
         *file_list = g_list_next(*file_list);
     }
+}
+
+static void
+add_directory_list_to_tree(GNode    **tree,
+                           GList    **dir_list,
+                           struct Preference_Settings *preference_settings,
+                           GError   **error) {
+
+    *dir_list  = g_list_sort(*dir_list, vnr_file_list_compare);
 
     struct Preference_Settings* dir_preference_settings = create_preference_settings(preference_settings->include_hidden,
                                                                                      preference_settings->include_dirs,
@@ -366,9 +392,9 @@ vnr_append_file_and_dir_lists_to_tree(GNode    **tree,
                                                                                      preference_settings->cb_data);
     while(*dir_list != NULL) {
 
-        subtree = vnr_file_dir_content_to_list((*dir_list)->data,
-                                               dir_preference_settings,
-                                               error);
+        GNode *subtree = vnr_file_dir_content_to_list((*dir_list)->data,
+                                                      dir_preference_settings,
+                                                      error);
         vnr_file_set_file_monitor(subtree, preference_settings);
 
         add_node_in_tree(*tree, subtree);
@@ -376,8 +402,6 @@ vnr_append_file_and_dir_lists_to_tree(GNode    **tree,
     }
 
     free(dir_preference_settings);
-    g_free(*dir_list);
-    g_free(*file_list);
 }
 
 
@@ -397,7 +421,8 @@ vnr_file_dir_content_to_list(VnrFile  *vnrfile,
     char* folder_path = vnrfile->path;
 
     file   = g_file_new_for_path(folder_path);
-    f_enum = g_file_enumerate_children(file, G_FILE_ATTRIBUTE_STANDARD_NAME","
+    f_enum = g_file_enumerate_children(file,
+                                       G_FILE_ATTRIBUTE_STANDARD_NAME","
                                        G_FILE_ATTRIBUTE_STANDARD_DISPLAY_NAME","
                                        G_FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE","
                                        G_FILE_ATTRIBUTE_STANDARD_IS_HIDDEN,
@@ -416,6 +441,7 @@ vnr_file_dir_content_to_list(VnrFile  *vnrfile,
                                                preference_settings,
                                                error);
 
+        free(child_path);
         g_object_unref(file_info);
         file_info = g_file_enumerator_next_file(f_enum, NULL, NULL);
     }
@@ -429,6 +455,8 @@ vnr_file_dir_content_to_list(VnrFile  *vnrfile,
                                           &file_list,
                                           preference_settings,
                                           error);
+    g_list_free(dir_list);
+    g_list_free(file_list);
     return tree;
 }
 
@@ -543,6 +571,7 @@ GNode* create_tree_from_single_uri(char *uri,
         } else {
             tree = node;
         }
+        free(parent_path);
     }
 
     free(preference_settings);
@@ -631,7 +660,6 @@ GNode* create_tree_from_uri_list(GSList *uri_list,
                                                                                  TRUE,
                                                                                  cb,
                                                                                  cb_data);
-
     vnr_append_file_and_dir_lists_to_tree(&tree,
                                           &dir_list,
                                           &file_list,
@@ -640,6 +668,8 @@ GNode* create_tree_from_uri_list(GSList *uri_list,
 
     tree = get_next_in_tree(tree);
 
+    g_list_free(dir_list);
+    g_list_free(file_list);
     free(dir_preference_settings);
     free(preference_settings);
     return tree;
@@ -764,7 +794,7 @@ static gboolean found_position_where_node_should_be_inserted(GNode *currnode, GN
     gboolean newnode_is_file = is_leaf(newnode);
     gboolean both_nodes_are_of_same_type = is_leaf(currnode) == is_leaf(newnode);
     return (currnode_is_dir && newnode_is_file) ||
-            (both_nodes_are_of_same_type && g_strcmp0(((VnrFile*) currnode->data)->display_name_collate, ((VnrFile*) newnode->data)->display_name_collate) > 0);
+           (both_nodes_are_of_same_type && g_strcmp0(((VnrFile*) currnode->data)->display_name_collate, ((VnrFile*) newnode->data)->display_name_collate) > 0);
 }
 
 /**
@@ -893,7 +923,7 @@ static void get_number_of_leaves(GNode *tree, GNode *node_to_look_for, int *curr
     GNode *child = get_first_or_last(tree, RIGHT);
     while(child != NULL) {
 
-        get_number_of_leaves(child, node_to_look_for, (int*) current, (int*) total);
+        get_number_of_leaves(child, node_to_look_for, current, total);
         if(!has_more_siblings(child)) {
             break;
         }
@@ -913,7 +943,7 @@ void get_leaf_position(GNode *tree, int *tree_position, int *total) {
     *total = 0;
 
     if(tree != NULL) {
-        get_number_of_leaves(get_root_node(tree), tree, (int*) tree_position, (int*) total);
+        get_number_of_leaves(get_root_node(tree), tree, tree_position, total);
     }
 }
 

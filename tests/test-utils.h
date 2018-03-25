@@ -55,7 +55,6 @@ GNode* uri_list_with_some_invalid_entries(gboolean include_hidden, gboolean recu
 GNode* uri_list_with_only_invalid_entries(gboolean include_hidden, gboolean recursive);
 GNode* get_tree(inputtype type, gboolean include_hidden, gboolean recursive);
 char* print_and_free_tree(GNode *tree);
-char* get_printed_tree(inputtype type, gboolean include_hidden, gboolean recursive);
 GNode* uri_list_with_no_entries(gboolean include_hidden, gboolean recursive);
 
 void create_dir(const char *path);
@@ -73,7 +72,7 @@ void assert_trees_equal(char* description, GNode* expected, GNode* actual);
 void assert_tree_is_null(char* description, GNode* tree);
 void assert_error_is_null(GError* error);
 void assert_error_is_not_null(GError* error);
-void assert_file_system_changes(int expected);
+void assert_file_system_changes_at_least(int expected);
 void wait_until_tree_is_null();
 void wait_until_tree_is_as_expected(GNode* tree, char* expected);
 void wait_until_file_system_changes_is_as_expected(int expected);

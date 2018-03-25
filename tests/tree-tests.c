@@ -527,7 +527,7 @@ static void test_getNextInTree_RootWithoutElements() {
 static void test_getNextInTree_RootWithOnlyDir() {
     before();
 
-    VnrFile* vnrfile = vnr_file_create_new(g_strdup("filepath"), g_strdup("display_name"), TRUE);
+    VnrFile* vnrfile = vnr_file_create_new("filepath", "display_name", TRUE);
     GNode *tree = g_node_new(vnrfile);
     assert_trees_equal("Get Next ─ Input is Root with only one dir", tree, get_next_in_tree(tree));
     assert_trees_equal("Get First ─ Input is Root with only one dir", tree, get_first_in_tree(tree));
@@ -570,6 +570,8 @@ static void test_getNextInTree_UriList_RootWithOnlyThreeDirs() {
     GError *error = NULL;
     GNode *tree = create_tree_from_uri_list(uri_list, TRUE, TRUE, NULL, NULL, &error);
     assert_error_is_null(error);
+    free(error);
+    g_slist_free(uri_list);
 
     assert_trees_equal("Get Next ─ Uri List ─ Input is Root with only three dirs", tree, get_next_in_tree(tree));
     assert_trees_equal("Get First ─ Uri List ─ Input is Root with only three dirs", tree, get_first_in_tree(tree));
@@ -1523,6 +1525,8 @@ static void test_addNodeInTree_DouplicateNode() {
 ";
 
     assert_equals("Add node in tree ─ Douplicate node: F ─ Recursive: F", expected, print_and_free_tree(tree));
+
+    free_whole_tree(node);
     after();
 }
 
@@ -1544,6 +1548,7 @@ static void test_addNodeInTree_TreeIsLeaf() {
 ";
 
     assert_equals("Add node in tree ─ Tree is leaf ─ No change", expected, print_and_free_tree(tree));
+    free_whole_tree(node);
     after();
 }
 

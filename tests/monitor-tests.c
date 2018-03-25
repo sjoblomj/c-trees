@@ -45,7 +45,7 @@ static void test_filemonitor_create_file_in_folder_nonrecursive() {
     wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after create in root ─ Include hidden files: F ─ Recursive: F", expected_after, output);
-    assert_file_system_changes(1);
+    assert_file_system_changes_at_least(1);
 
     after();
 }
@@ -113,7 +113,7 @@ static void test_filemonitor_create_file_in_folder_recursive() {
     wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after create in subdir ─ Include hidden files: F ─ Recursive: T", expected_after, output);
-    assert_file_system_changes(1);
+    assert_file_system_changes_at_least(1);
 
     after();
 }
@@ -145,7 +145,7 @@ static void test_filemonitor_create_hidden_file_in_folder_nonrecursive() {
     wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after create hidden in root ─ Include hidden files: F ─ Recursive: F", expected_after, output);
-    assert_file_system_changes(0);
+    assert_file_system_changes_at_least(0);
 
     after();
 }
@@ -219,7 +219,7 @@ static void test_filemonitor_create_multiple_files_in_folder_recursive() {
     wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after create multiple files in subdirs ─ Include hidden files: F ─ Recursive: T", expected_after, output);
-    assert_file_system_changes(4);
+    assert_file_system_changes_at_least(4);
 
     after();
 }
@@ -252,7 +252,7 @@ static void test_filemonitor_create_file_in_folder_sorted() {
     wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after create file in folder sorted ─ Include hidden files: F ─ Recursive: F", expected_after, output);
-    assert_file_system_changes(1);
+    assert_file_system_changes_at_least(1);
 
     after();
 }
@@ -320,7 +320,7 @@ static void test_filemonitor_create_folder_in_folder_sorted() {
     wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after create folder in folder sorted ─ Include hidden files: F ─ Recursive: T", expected_after, output);
-    assert_file_system_changes(1);
+    assert_file_system_changes_at_least(1);
 
     after();
 }
@@ -393,7 +393,9 @@ static void test_filemonitor_recursive_create_dir_then_create_files_in_it() {
     wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after create dir with files ─ Include hidden files: F ─ Recursive: T", expected_after, output);
-    assert_file_system_changes(1);
+    assert_file_system_changes_at_least(1); // Files were added immediately after the the directory was created.
+                                            // Once the file monitor for the directory was setup, the directory
+                                            // may already have been populated.
 
     after();
 }
@@ -427,7 +429,7 @@ static void test_filemonitor_nonrecursive_create_dir_then_create_files_in_it() {
     wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after create dir with files ─ Include hidden files: F ─ Recursive: F", expected_after, output);
-    assert_file_system_changes(0);
+    assert_file_system_changes_at_least(0); // Not recursive -- directory ignored.
 
     after();
 }
@@ -469,7 +471,7 @@ static void test_filemonitor_uriList_create_file_in_root() {
     wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after urilist create file in root ─ Include hidden files: F ─ Recursive: F", expected_after, output);
-    assert_file_system_changes(0);
+    assert_file_system_changes_at_least(0);
 
     after();
 }
@@ -510,7 +512,7 @@ static void test_filemonitor_uriList_create_dir_in_root() {
     wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after urilist create dir in root ─ Include hidden files: F ─ Recursive: F", expected_after, output);
-    assert_file_system_changes(0);
+    assert_file_system_changes_at_least(0);
 
     after();
 }
@@ -549,7 +551,7 @@ static void test_filemonitor_uriList_create_file_in_watched_dir() {
     wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after urilist create file in watched dir ─ Include hidden files: F ─ Recursive: F", expected_after, output);
-    assert_file_system_changes(1);
+    assert_file_system_changes_at_least(1);
 
     after();
 }
@@ -587,7 +589,7 @@ static void test_filemonitor_uriList_create_file_in_nonwatched_dir() {
     wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after urilist create file in nonwatched dir ─ Include hidden files: F ─ Recursive: F", expected_after, output);
-    assert_file_system_changes(0);
+    assert_file_system_changes_at_least(0);
 
     after();
 }
@@ -613,7 +615,7 @@ static void test_filemonitor_uriList_create_file_in_empty_root() {
     wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after urilist create file in empty dir ─ Include hidden files: F ─ Recursive: F", expected_after, output);
-    assert_file_system_changes(0);
+    assert_file_system_changes_at_least(0);
 
     after();
 }
@@ -652,7 +654,7 @@ static void test_filemonitor_delete_file_in_folder_root() {
     wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after delete in dirroot ─ Include hidden files: T ─ Recursive: F", expected_after, output);
-    assert_file_system_changes(1);
+    assert_file_system_changes_at_least(1);
 
     after();
 }
@@ -687,6 +689,7 @@ static void test_filemonitor_delete_hidden_file_in_folder_root() {
     wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after delete hidden ─ Include hidden files: T ─ Recursive: F", expected_after, output);
+    assert_file_system_changes_at_least(1);
 
     after();
 }
@@ -752,7 +755,7 @@ static void test_filemonitor_delete_file_in_sub_folder() {
     wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after delete in subdir ─ Include hidden files: F ─ Recursive: T", expected_after, output);
-    assert_file_system_changes(1);
+    assert_file_system_changes_at_least(1);
 
     after();
 }
@@ -818,7 +821,7 @@ static void test_filemonitor_delete_multiple_files() {
     wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after delete in subdir ─ Include hidden files: F ─ Recursive: T", expected_after, output);
-    assert_file_system_changes(3);
+    assert_file_system_changes_at_least(3);
 
     after();
 }
@@ -883,7 +886,7 @@ static void test_filemonitor_delete_subsub_folder() {
 
 
     assert_equals("File monitor after delete subsubdir ─ Include hidden files: F ─ Recursive: T", expected_after, output);
-    assert_file_system_changes(5); // delete img0.png, img1.png, img2.png, sub_dir_one and remove sub_dir_one from dir_two
+    assert_file_system_changes_at_least(4);
 
     after();
 }
@@ -935,9 +938,7 @@ static void test_filemonitor_delete_sub_folder() {
 
 
     assert_equals("File monitor after delete subdir ─ Include hidden files: F ─ Recursive: T", expected_after, output);
-    assert_file_system_changes(12); // delete subsub, remove subsub from sub_dir_four, delete sub_dir_four, remove sub_dir_four from dir_two,
-                                    // delete sub_dir_one, delete apa.png, bepa.png, cepa.png, delete sub_dir_three, delete sub_dir_two,
-                                    // delete dir_two, remove dir_two from root
+    assert_file_system_changes_at_least(16);
 
     after();
 }
@@ -981,6 +982,7 @@ static void test_filemonitor_delete_root_folder() {
     wait_until_tree_is_null();
 
     assert_tree_is_null("File monitor after delete root ─ Include hidden files: F ─ Recursive: T", monitor_test_tree);
+    assert_file_system_changes_at_least(22);
 
     after();
 }
@@ -1020,7 +1022,7 @@ static void test_filemonitor_uriList_delete_file_under_root() {
     wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after urilist delete file in root ─ Include hidden files: F ─ Recursive: F", expected_after, output);
-    assert_file_system_changes(1);
+    assert_file_system_changes_at_least(1);
 
     after();
 }
@@ -1058,7 +1060,7 @@ static void test_filemonitor_uriList_delete_nonwatched_file_under_root() {
     wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after urilist delete nonwatched file in root ─ Include hidden files: F ─ Recursive: F", expected_after, output);
-    assert_file_system_changes(0);
+    assert_file_system_changes_at_least(0);
 
     after();
 }
@@ -1084,7 +1086,7 @@ static void test_filemonitor_uriList_delete_nonwatched_file_under_empty_root() {
     wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after urilist delete file in empty root ─ Include hidden files: F ─ Recursive: F", expected_after, output);
-    assert_file_system_changes(0);
+    assert_file_system_changes_at_least(0);
 
     after();
 }
@@ -1121,7 +1123,7 @@ static void test_filemonitor_uriList_delete_file_under_watched_dir() {
     wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after urilist delete file in watched dir ─ Include hidden files: F ─ Recursive: F", expected_after, output);
-    assert_file_system_changes(1);
+    assert_file_system_changes_at_least(1);
 
     after();
 }
@@ -1159,7 +1161,7 @@ static void test_filemonitor_uriList_delete_file_under_nonwatched_dir() {
     wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
 
     assert_equals("File monitor after urilist delete file in nonwatched dir ─ Include hidden files: F ─ Recursive: F", expected_after, output);
-    assert_file_system_changes(0);
+    assert_file_system_changes_at_least(0);
 
     after();
 }
@@ -1230,7 +1232,7 @@ static void test_filemonitor_move_file_in_same_dir() {
 
 
     assert_equals("File monitor after move file in same dir ─ Include hidden files: F ─ Recursive: T", expected_after, output);
-    assert_file_system_changes(2);
+    assert_file_system_changes_at_least(2);
 
     after();
 }
@@ -1299,7 +1301,7 @@ static void test_filemonitor_move_file_to_subdir() {
 
 
     assert_equals("File monitor after move file to subdir ─ Include hidden files: F ─ Recursive: T", expected_after, output);
-    assert_file_system_changes(2);
+    assert_file_system_changes_at_least(2);
 
     after();
 }
@@ -1368,7 +1370,7 @@ static void test_filemonitor_move_file_to_parent_dir() {
 
 
     assert_equals("File monitor after move file in subdir to root ─ Include hidden files: F ─ Recursive: T", expected_after, output);
-    assert_file_system_changes(2);
+    assert_file_system_changes_at_least(2);
 
     after();
 }
@@ -1437,7 +1439,7 @@ static void test_filemonitor_move_dir_in_same_dir() {
 
 
     assert_equals("File monitor after move dir in root ─ Include hidden files: F ─ Recursive: T", expected_after, output);
-    assert_file_system_changes(2);
+    assert_file_system_changes_at_least(2);
 
     after();
 }

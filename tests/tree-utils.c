@@ -21,12 +21,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
 #include "../src/tree.h"
-#include "../src/vnrfile.h"
 #include "tree-utils.h"
 
 char* out;
@@ -60,7 +55,7 @@ static void print_node(GNode *node, gpointer data) {
         char* append_str = has_more_siblings(node) ? "├─ " : "└─ ";
         char* tree_structure = create_string((char*) data, append_str);
 
-        output_offset += snprintf(out + output_offset, OUTPUTSIZE - output_offset, "%s%s\n", tree_structure, get_file_name(node));
+        output_offset += snprintf(out + output_offset, (size_t) (OUTPUTSIZE - output_offset), "%s%s\n", tree_structure, get_file_name(node));
 
         free(tree_structure);
 
@@ -82,7 +77,7 @@ static void print_tree(GNode *tree, char* tree_structure_base) {
         }
     }
 
-    output_offset += snprintf(out + output_offset, OUTPUTSIZE - output_offset, "%s%s" KWHT "%s  (%i children)" RESET "\n",
+    output_offset += snprintf(out + output_offset, (size_t) (OUTPUTSIZE - output_offset), "%s%s" KWHT "%s  (%i children)" RESET "\n",
                               tree_structure_base, tree_structure_end, get_file_name(tree), g_node_n_children(tree));
 
     char* append_str = (G_NODE_IS_ROOT(tree) ? "" : (has_more_siblings(tree) ? "│ " : "  "));
