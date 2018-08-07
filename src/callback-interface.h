@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009-2014 Siyan Panayotov <siyan.panayotov@gmail.com>
- * Copyright © 2016-2017 Johan Sjöblom <sjoblomj88@gmail.com>
+ * Copyright © 2016-2018 Johan Sjöblom <sjoblomj88@gmail.com>
  *
  * This file is part of c-trees.
  *

@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009-2014 Siyan Panayotov <siyan.panayotov@gmail.com>
- * Copyright © 2016-2017 Johan Sjöblom <sjoblomj88@gmail.com>
+ * Copyright © 2016-2018 Johan Sjöblom <sjoblomj88@gmail.com>
  *
  * This file is part of c-trees.
  *
@@ -123,8 +123,8 @@ static gboolean vnr_file_is_supported_mime_type(const char *mime_type) {
     quark = g_quark_from_string (mime_type);
 
     result = g_list_find_custom (supported_mime_types,
-                     GINT_TO_POINTER (quark),
-                     (GCompareFunc) compare_quarks);
+                                 GINT_TO_POINTER (quark),
+                                 (GCompareFunc) compare_quarks);
 
     return (result != NULL);
 }
@@ -346,16 +346,14 @@ vnr_file_add_file_to_lists_if_possible(gchar   *filepath,
 }
 
 static void
-vnr_append_file_and_dir_lists_to_tree(GNode    **tree,
-                                      GList    **dir_list,
-                                      GList    **file_list,
+vnr_append_file_and_dir_lists_to_tree(GNode  **tree,
+                                      GList  **dir_list,
+                                      GList  **file_list,
                                       struct Preference_Settings* preference_settings,
-                                      GError   **error)
+                                      GError **error)
 {
-
     add_file_list_to_tree(tree, file_list, preference_settings);
     add_directory_list_to_tree(tree, dir_list, preference_settings, error);
-
 }
 
 static void
@@ -366,11 +364,11 @@ add_file_list_to_tree(GNode **tree,
     *file_list = g_list_sort(*file_list, vnr_file_list_compare);
 
     while(*file_list != NULL) {
-        GNode *subtree = g_node_new((*file_list)->data);
-        add_node_in_tree(*tree, subtree);
+        GNode *node = g_node_new((*file_list)->data);
+        add_node_in_tree(*tree, node);
 
         if(preference_settings->set_file_monitor_for_file) {
-            vnr_file_set_file_monitor(subtree, preference_settings);
+            vnr_file_set_file_monitor(node, preference_settings);
         }
 
         *file_list = g_list_next(*file_list);
@@ -378,10 +376,10 @@ add_file_list_to_tree(GNode **tree,
 }
 
 static void
-add_directory_list_to_tree(GNode    **tree,
-                           GList    **dir_list,
+add_directory_list_to_tree(GNode  **tree,
+                           GList  **dir_list,
                            struct Preference_Settings *preference_settings,
-                           GError   **error) {
+                           GError **error) {
 
     *dir_list  = g_list_sort(*dir_list, vnr_file_list_compare);
 
@@ -392,12 +390,12 @@ add_directory_list_to_tree(GNode    **tree,
                                                                                      preference_settings->cb_data);
     while(*dir_list != NULL) {
 
-        GNode *subtree = vnr_file_dir_content_to_list((*dir_list)->data,
-                                                      dir_preference_settings,
-                                                      error);
-        vnr_file_set_file_monitor(subtree, preference_settings);
+        GNode *node = vnr_file_dir_content_to_list((*dir_list)->data,
+                                                   dir_preference_settings,
+                                                   error);
+        vnr_file_set_file_monitor(node, preference_settings);
 
-        add_node_in_tree(*tree, subtree);
+        add_node_in_tree(*tree, node);
         *dir_list = g_list_next(*dir_list);
     }
 
@@ -433,7 +431,7 @@ vnr_file_dir_content_to_list(VnrFile  *vnrfile,
 
     while(file_info != NULL) {
         char* child_path = g_strjoin(G_DIR_SEPARATOR_S, folder_path,
-                                       (char*)g_file_info_get_name (file_info), NULL);
+                                     (char*)g_file_info_get_name (file_info), NULL);
 
         vnr_file_add_file_to_lists_if_possible(child_path,
                                                &dir_list,

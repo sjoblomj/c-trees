@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009-2014 Siyan Panayotov <siyan.panayotov@gmail.com>
- * Copyright © 2016-2017 Johan Sjöblom <sjoblomj88@gmail.com>
+ * Copyright © 2016-2018 Johan Sjöblom <sjoblomj88@gmail.com>
  *
  * This file is part of c-trees.
  *
@@ -67,7 +67,7 @@ VnrFile*
 vnr_file_create_new(gchar *path,
                     char *display_name,
                     gboolean is_directory);
-void      vnr_file_destroy_data(VnrFile* vnrfile);
+void     vnr_file_destroy_data (VnrFile* vnrfile);
 gboolean vnr_file_is_directory (VnrFile* vnrfile);
 gboolean vnr_file_is_image_file(VnrFile* vnrfile);
 
