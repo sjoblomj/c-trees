@@ -146,6 +146,91 @@ static struct Preference_Settings* create_preference_settings(gboolean include_h
 }
 
 
+static gboolean tree_contains_path(GNode *tree, char *path) {
+    return get_child_in_directory(tree, path) != NULL;
+}
+
+static void remove_file_from_tree(struct MonitoringData *monitoring_data, GFile *file) {
+
+    GNode* tree = monitoring_data->tree;
+    callback tree_changed_callback = monitoring_data->cb;
+    gpointer cb_data = monitoring_data->cb_data;
+
+    GNode *root = get_root_node(tree);
+
+    char *file_path = g_file_get_path(file);
+    GNode* child = get_child_in_directory(tree, file_path);
+
+    if(child != NULL) {
+        g_node_unlink(child);
+        free_current_tree(child);
+    }
+
+    if(tree_changed_callback != NULL) {
+        tree_changed_callback(TRUE, file_path, child, root, cb_data);
+    }
+
+    g_free(file_path);
+}
+
+static void add_file_to_tree(struct MonitoringData *monitoring_data, GFile *file) {
+
+    VnrFile* vnrfile_new = NULL;
+
+    GNode* tree = monitoring_data->tree;
+    gboolean include_hidden = monitoring_data->include_hidden;
+    gboolean include_dirs = monitoring_data->include_dirs;
+    gboolean set_file_monitor_for_file = monitoring_data->set_file_monitor_for_file;
+    callback tree_changed_callback = monitoring_data->cb;
+    gpointer cb_data = monitoring_data->cb_data;
+
+    GNode *root = get_root_node(tree);
+    char *file_path = g_file_get_path(file);
+
+    if(!tree_contains_path(tree, file_path)) {
+
+        vnr_file_get_file_info(file_path,
+                               &vnrfile_new,
+                               include_hidden,
+                               NULL);
+
+        gboolean file_added_to_tree = FALSE;
+        GNode *newnode = NULL;
+        if(vnr_file_is_directory(vnrfile_new)) {
+            if(include_dirs) {
+                // Newly created directory. It might already have been populated.
+
+                struct Preference_Settings* preference_settings = create_preference_settings(include_hidden,
+                                                                                             include_dirs,
+                                                                                             set_file_monitor_for_file,
+                                                                                             tree_changed_callback,
+                                                                                             cb_data);
+
+                newnode = vnr_file_dir_content_to_list(vnrfile_new, preference_settings, NULL);
+                add_node_in_tree(tree, newnode);
+                vnr_file_set_file_monitor(newnode, preference_settings);
+
+                file_added_to_tree = TRUE;
+                free(preference_settings);
+            }
+
+        } else if(vnr_file_is_image_file(vnrfile_new)) {
+            newnode = g_node_new(vnrfile_new);
+            add_node_in_tree(tree, newnode);
+            file_added_to_tree = TRUE;
+        }
+
+        if(file_added_to_tree && tree_changed_callback != NULL) {
+            tree_changed_callback(FALSE, file_path, newnode, root, cb_data);
+        }
+
+        if(!file_added_to_tree) {
+            vnr_file_destroy_data(vnrfile_new);
+        }
+    }
+    g_free(file_path);
+}
+
 
 static void
 vnr_file_directory_updated(GFileMonitor       *monitor,
@@ -157,78 +242,18 @@ vnr_file_directory_updated(GFileMonitor       *monitor,
     UNUSED(monitor);
     UNUSED(other_file);
 
-    char *file_path;
-    VnrFile* vnrfile_new = NULL;
     VnrFile* vnrfile = data;
-
-    GNode* tree = (vnrfile->monitoring_data)->tree;
-    gboolean include_hidden = (vnrfile->monitoring_data)->include_hidden;
-    gboolean include_dirs = (vnrfile->monitoring_data)->include_dirs;
-    gboolean set_file_monitor_for_file = (vnrfile->monitoring_data)->set_file_monitor_for_file;
-    callback tree_changed_callback = (vnrfile->monitoring_data)->cb;
-    gpointer cb_data = (vnrfile->monitoring_data)->cb_data;
-
-    GNode *root = get_root_node(tree);
 
     switch (type) {
         case G_FILE_MONITOR_EVENT_DELETED:
 
-            file_path = g_file_get_path(file);
-            GNode* child = get_child_in_directory(tree, file_path);
-
-            if(child != NULL) {
-                g_node_unlink(child);
-                free_current_tree(child);
-            }
-
-            if(tree_changed_callback != NULL) {
-                tree_changed_callback(TRUE, file_path, child, root, cb_data);
-            }
-
-            g_free(file_path);
+            remove_file_from_tree(vnrfile->monitoring_data, file);
             break;
 
+        case G_FILE_MONITOR_EVENT_CHANGED: // Fall-through
         case G_FILE_MONITOR_EVENT_CREATED:
-            file_path = g_file_get_path(file);
-            vnr_file_get_file_info(file_path,
-                                   &vnrfile_new,
-                                   include_hidden,
-                                   NULL);
 
-            gboolean file_added_to_tree = FALSE;
-            GNode *newnode = NULL;
-            if(vnr_file_is_directory(vnrfile_new)) {
-                if(include_dirs) {
-                    // Newly created directory. It might already have been populated.
-
-                    struct Preference_Settings* preference_settings = create_preference_settings(include_hidden,
-                                                                                                 include_dirs,
-                                                                                                 set_file_monitor_for_file,
-                                                                                                 tree_changed_callback,
-                                                                                                 cb_data);
-
-                    newnode = vnr_file_dir_content_to_list(vnrfile_new, preference_settings, NULL);
-                    add_node_in_tree(tree, newnode);
-                    vnr_file_set_file_monitor(newnode, preference_settings);
-
-                    file_added_to_tree = TRUE;
-                    free(preference_settings);
-                }
-
-            } else if(vnr_file_is_image_file(vnrfile_new)) {
-                newnode = g_node_new(vnrfile_new);
-                add_node_in_tree(tree, newnode);
-                file_added_to_tree = TRUE;
-            }
-
-            if(file_added_to_tree && tree_changed_callback != NULL) {
-                tree_changed_callback(FALSE, file_path, newnode, root, cb_data);
-            }
-
-            if(!file_added_to_tree) {
-                vnr_file_destroy_data(vnrfile_new);
-            }
-            g_free(file_path);
+            add_file_to_tree(vnrfile->monitoring_data, file);
             break;
 
         default:
