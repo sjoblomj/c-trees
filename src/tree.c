@@ -561,6 +561,7 @@ GNode* create_tree_from_single_uri(char *uri,
             tree = vnr_file_dir_content_to_list(vnrfile,
                                                 preference_settings,
                                                 error);
+            vnr_file_set_file_monitor(tree, preference_settings);
         }
 
         GNode *node = get_child_in_directory(tree, uri);
