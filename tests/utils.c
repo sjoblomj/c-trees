@@ -1,5 +1,6 @@
 /*
- * Copyright © 2016-2017 Johan Sjöblom <sjoblomj88@gmail.com>
+ * Copyright © 2009-2014 Siyan Panayotov <siyan.panayotov@gmail.com>
+ * Copyright © 2016-2018 Johan Sjöblom <sjoblomj88@gmail.com>
  *
  * This file is part of c-trees.
  *
@@ -16,8 +17,8 @@
  * You should have received a copy of the GNU General Public License
  * along with c-trees.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "test-utils.h"
 
+#include "utils.h"
 
 const int TIMEOUT = 5;
 int file_system_changes = 0;
@@ -305,7 +306,7 @@ int remove_directory(const char *path) {
     return r;
 }
 
-void remove_file_structure() {
+void remove_test_directory() {
     remove_directory(TESTDIR);
 }
 
@@ -329,7 +330,7 @@ void after() {
         free_whole_tree(monitor_test_tree);
         monitor_test_tree = NULL;
     }
-    remove_file_structure();
+    remove_test_directory();
 }
 
 void reset_output() {
@@ -341,10 +342,10 @@ void reset_output() {
 
 void assert_equals(char* description, char* expected, char* actual) {
     if(strcmp(expected, actual) == 0) {
-        printf("  " KGRN "[PASS]  %s\n" RESET, description);
+        printf(KGRN "[PASS]  %s\n" RESET, description);
     } else {
         printf("\n");
-        printf("  " KRED "[FAIL]  %s\n" RESET, description);
+        printf(KRED "[FAIL]  %s\n" RESET, description);
         printf("Expected:\n'%s'\n\nActual:\n'%s'\n\n", expected, actual);
         fprintf(stderr, "* %s\n", description);
         errors++;
@@ -353,10 +354,10 @@ void assert_equals(char* description, char* expected, char* actual) {
 
 void assert_numbers_equals(char* description, int expected, int actual) {
     if(expected == actual) {
-        printf("  " KGRN "[PASS]  %s\n" RESET, description);
+        printf(KGRN "[PASS]  %s\n" RESET, description);
     } else {
         printf("\n");
-        printf("  " KRED "[FAIL]  %s\n" RESET, description);
+        printf(KRED "[FAIL]  %s\n" RESET, description);
         printf("Expected: %i,   Actual: %i\n\n", expected, actual);
         fprintf(stderr, "* %s\n", description);
         errors++;
@@ -378,10 +379,10 @@ void assert_trees_equal(char* description, GNode* expected, GNode* actual) {
 
 void assert_tree_is_null(char* description, GNode* tree) {
     if(tree == NULL) {
-        printf("  " KGRN "[PASS]  %s\n" RESET, description);
+        printf(KGRN "[PASS]  %s\n" RESET, description);
     } else {
         printf("\n");
-        printf("  " KRED "[FAIL]  %s\n" RESET, description);
+        printf(KRED "[FAIL]  %s\n" RESET, description);
         fprintf(stderr, "* %s\n", description);
         errors++;
     }
@@ -389,7 +390,7 @@ void assert_tree_is_null(char* description, GNode* tree) {
 
 void assert_error_is_null(GError* error) {
     if(error != NULL) {
-        printf("  " KRED "[FAIL]  Error should not be set! Was: %s\n" RESET, error->message);
+        printf(KRED "[FAIL]  Error should not be set! Was: %s\n" RESET, error->message);
         fprintf(stderr, "* Error should not be set! Was: %s\n", error->message);
         errors++;
     }
@@ -397,7 +398,7 @@ void assert_error_is_null(GError* error) {
 
 void assert_error_is_not_null(GError* error) {
     if(error == NULL) {
-        printf("  " KRED "[FAIL]  Error should be set!\n" RESET);
+        printf(KRED "[FAIL]  Error should be set!\n" RESET);
         fprintf(stderr, "* Error should be set!\n");
         errors++;
     }
@@ -410,7 +411,7 @@ void assert_error_is_not_null(GError* error) {
 void assert_file_system_changes_at_least(int expected) {
     if(file_system_changes < expected) {
         printf("\n");
-        printf("  " KRED "[FAIL]  %s\n" RESET, "Mismatch in number of file system changes");
+        printf(KRED "[FAIL]  %s\n" RESET, "Mismatch in number of file system changes");
         printf("Expected: %i,   Actual: %i\n\n", expected, file_system_changes);
         errors++;
     }
@@ -454,13 +455,25 @@ void wait_until_tree_is_as_expected(GNode* tree, char* expected) {
     }
 }
 
-int main() {
-    tree_tests();
 
-    GMainLoop* loop = g_main_loop_new(NULL, FALSE);
-    g_timeout_add(1000, file_monitor_tests, loop);
-    g_main_loop_run(loop);
-    g_main_loop_unref(loop);
 
-    return errors;
+static void assert_iteration(char* description_base, GNode* node, char* expected_file_name) {
+    VnrFile* vnrfile = node->data;
+
+    char* description = create_string(description_base, expected_file_name);
+    assert_equals(description, expected_file_name, vnrfile->display_name);
+
+    free(description);
+}
+
+GNode* assert_forward_iteration(GNode* node, char* expected_file_name) {
+    GNode *next = get_next_in_tree(node);
+    assert_iteration("Get Next ─ Iterating ─ ", next, expected_file_name);
+    return next;
+}
+
+GNode* assert_backward_iteration(GNode* node, char* expected_file_name) {
+    GNode *prev = get_prev_in_tree(node);
+    assert_iteration("Get Prev ─ Iterating ─ ", prev, expected_file_name);
+    return prev;
 }

@@ -1,5 +1,6 @@
 /*
- * Copyright © 2016-2017 Johan Sjöblom <sjoblomj88@gmail.com>
+ * Copyright © 2009-2014 Siyan Panayotov <siyan.panayotov@gmail.com>
+ * Copyright © 2016-2018 Johan Sjöblom <sjoblomj88@gmail.com>
  *
  * This file is part of c-trees.
  *
@@ -17,8 +18,8 @@
  * along with c-trees.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __TEST_UTILS_H__
-#define __TEST_UTILS_H__
+#ifndef __UTILS_H__
+#define __UTILS_H__
 
 #include <stdio.h>
 #include <string.h>
@@ -30,9 +31,7 @@
 
 #include "../src/tree.h"
 #include "../src/vnrfile.h"
-#include "tree-utils.h"
-#include "monitor-tests.h"
-#include "tree-tests.h"
+#include "tree-printer.h"
 
 #define KRED  "\x1B[31m"
 #define KGRN  "\x1B[32m"
@@ -42,6 +41,7 @@
 #define TESTDIRNAME "c-trees-tests"
 #define TESTDIR "/tmp/" TESTDIRNAME
 
+extern int errors;
 char* output;
 GNode* monitor_test_tree;
 
@@ -61,8 +61,10 @@ void create_dir(const char *path);
 void create_file(const char *path);
 void create_file_structure();
 int remove_directory(const char *path);
-void remove_file_structure();
+void remove_test_directory();
 
+void before_all();
+void after_all();
 void before();
 void after();
 void reset_output();
@@ -77,4 +79,7 @@ void wait_until_tree_is_null();
 void wait_until_tree_is_as_expected(GNode* tree, char* expected);
 void wait_until_file_system_changes_is_as_expected(int expected);
 
-#endif /* __TEST_UTILS_H__ */
+GNode* assert_forward_iteration(GNode* node, char* expected_file_name);
+GNode* assert_backward_iteration(GNode* node, char* expected_file_name);
+
+#endif /* __UTILS_H__ */

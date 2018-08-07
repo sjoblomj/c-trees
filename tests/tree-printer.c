@@ -1,5 +1,6 @@
 /*
- * Copyright © 2016-2017 Johan Sjöblom <sjoblomj88@gmail.com>
+ * Copyright © 2009-2014 Siyan Panayotov <siyan.panayotov@gmail.com>
+ * Copyright © 2016-2018 Johan Sjöblom <sjoblomj88@gmail.com>
  *
  * This file is part of c-trees.
  *
@@ -22,7 +23,7 @@
 #include <stdlib.h>
 
 #include "../src/tree.h"
-#include "tree-utils.h"
+#include "tree-printer.h"
 
 char* out;
 int output_offset = 0;
@@ -77,7 +78,7 @@ static void print_tree(GNode *tree, char* tree_structure_base) {
         }
     }
 
-    output_offset += snprintf(out + output_offset, (size_t) (OUTPUTSIZE - output_offset), "%s%s" KWHT "%s  (%i children)" RESET "\n",
+    output_offset += snprintf(out + output_offset, (size_t) (OUTPUTSIZE - output_offset), "%s%s" KWHT "%s" RESET " (%i children)\n",
                               tree_structure_base, tree_structure_end, get_file_name(tree), g_node_n_children(tree));
 
     char* append_str = (G_NODE_IS_ROOT(tree) ? "" : (has_more_siblings(tree) ? "│ " : "  "));

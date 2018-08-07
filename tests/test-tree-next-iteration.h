@@ -1,5 +1,6 @@
 /*
- * Copyright © 2016-2017 Johan Sjöblom <sjoblomj88@gmail.com>
+ * Copyright © 2009-2014 Siyan Panayotov <siyan.panayotov@gmail.com>
+ * Copyright © 2016-2018 Johan Sjöblom <sjoblomj88@gmail.com>
  *
  * This file is part of c-trees.
  *
@@ -17,9 +18,9 @@
  * along with c-trees.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __MONITOR_TESTS_H__
-#define __MONITOR_TESTS_H__
+#ifndef C_TREES_TEST_TREE_NEXT_ITERATION_H
+#define C_TREES_TEST_TREE_NEXT_ITERATION_H
 
-gboolean file_monitor_tests(gpointer data);
+void test_tree_next_iteration();
 
-#endif /* __MONITOR_TESTS_H__ */
+#endif //C_TREES_TEST_TREE_NEXT_ITERATION_H

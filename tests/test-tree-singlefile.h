@@ -1,5 +1,6 @@
 /*
- * Copyright © 2016-2017 Johan Sjöblom <sjoblomj88@gmail.com>
+ * Copyright © 2009-2014 Siyan Panayotov <siyan.panayotov@gmail.com>
+ * Copyright © 2016-2018 Johan Sjöblom <sjoblomj88@gmail.com>
  *
  * This file is part of c-trees.
  *
@@ -17,14 +18,9 @@
  * along with c-trees.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __TREE_UTILS_H__
-#define __TREE_UTILS_H__
+#ifndef C_TREES_TEST_TREE_SINGLEFILE_H
+#define C_TREES_TEST_TREE_SINGLEFILE_H
 
-#define KWHT  "\033[1m\033[37m"
-#define RESET "\x1B[0m"
-#define OUTPUTSIZE 2048
+void test_tree_singlefile();
 
-char* create_string(char* base_str, char* append_str);
-void  pretty_print_tree(GNode *tree, char* out);
-
-#endif /* __TREE_UTILS_H__ */
+#endif //C_TREES_TEST_TREE_SINGLEFILE_H
