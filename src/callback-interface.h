@@ -21,6 +21,8 @@
 #ifndef __CALLBACK_INTERFACE_H__
 #define __CALLBACK_INTERFACE_H__
 
+#include <glib.h>
+
 /**
  * A callback function that will be called when a file or directory with
  * a file monitor have reported a change, i.e. a file or directory has

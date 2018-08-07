@@ -62,6 +62,9 @@ add_file_list_to_tree(GNode **tree, GList **file_list, struct Preference_Setting
 static void
 add_directory_list_to_tree(GNode **tree, GList **dir_list, struct Preference_Settings *preference_settings, GError **error);
 
+static gboolean
+tree_contains_path(GNode *tree, char *path);
+
 GList * supported_mime_types;
 
 
@@ -145,10 +148,6 @@ static struct Preference_Settings* create_preference_settings(gboolean include_h
     return preference_settings;
 }
 
-
-static gboolean tree_contains_path(GNode *tree, char *path) {
-    return get_child_in_directory(tree, path) != NULL;
-}
 
 static void remove_file_from_tree(struct MonitoringData *monitoring_data, GFile *file) {
 
@@ -891,6 +890,10 @@ GNode* recursively_get_child_in_directory(GNode *tree, char* path) {
  */
 GNode* get_child_in_directory(GNode *tree, char* path) {
     return recursively_get_child_in_directory(get_root_node(tree), path);
+}
+
+static gboolean tree_contains_path(GNode *tree, char *path) {
+    return get_child_in_directory(tree, path) != NULL;
 }
 
 /**
