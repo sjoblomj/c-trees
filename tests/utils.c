@@ -204,7 +204,7 @@ void create_file(const char *path) {
 
         FILE *fh = fopen(path, "wb");
         if(fh != NULL) {
-            fwrite(&img, sizeof(img), size, fh);
+            fwrite(&img, sizeof(img), 1, fh);
             fclose(fh);
         }
 

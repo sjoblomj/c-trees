@@ -63,8 +63,6 @@ void create_file_structure();
 int remove_directory(const char *path);
 void remove_test_directory();
 
-void before_all();
-void after_all();
 void before();
 void after();
 void reset_output();
