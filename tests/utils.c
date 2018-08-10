@@ -20,10 +20,36 @@
 
 #include "utils.h"
 
+char *testdir_path;
 const int TIMEOUT = 5;
 int file_system_changes = 0;
 int errors = 0;
 gpointer expected_callback_data = (gpointer) 1;
+
+char* append_strings(char* base_str, char* append_str) {
+    char* new_str = malloc(strlen(base_str) + strlen(append_str) + 1);
+    strcpy(new_str, base_str);
+    strcat(new_str, append_str);
+    return new_str;
+}
+
+GSList* add_path_to_list(GSList *list, char *parent_dir, char *filename) {
+    char *path = append_strings(parent_dir, filename);
+    list = g_slist_prepend(list, path);
+    return list;
+}
+
+char* get_absolute_path(char *dir, char *filename) {
+    char *absolute_path;
+    char *relative_path = append_strings(dir, filename);
+
+    GFile *file = g_file_new_for_path(relative_path);
+    absolute_path = g_file_get_path(file);
+
+    free(relative_path);
+    g_object_unref(file);
+    return absolute_path;
+}
 
 
 void file_system_changed_callback(gboolean deleted, char *path, GNode *changed_node, GNode *root, gpointer data) {
@@ -49,19 +75,20 @@ void file_system_changed_callback(gboolean deleted, char *path, GNode *changed_n
 GNode* single_file(gboolean include_hidden, gboolean recursive) {
     GNode *tree = NULL;
     GError *error = NULL;
-    char *path = TESTDIR "/bepa.png";
+    char *path = append_strings(testdir_path, "/bepa.png");
 
     tree = create_tree_from_single_uri(path, include_hidden, recursive, file_system_changed_callback, expected_callback_data, &error);
 
     assert_error_is_null(error);
     free(error);
+    free(path);
     return tree;
 }
 
 GNode* single_folder(gboolean include_hidden, gboolean recursive) {
     GNode *tree = NULL;
     GError *error = NULL;
-    char *path = TESTDIR;
+    char *path = testdir_path;
 
     tree = create_tree_from_single_uri(path, include_hidden, recursive, file_system_changed_callback, expected_callback_data, &error);
 
@@ -75,17 +102,17 @@ GNode* uri_list(gboolean include_hidden, gboolean recursive) {
     GError *error = NULL;
     GSList *uri_list = NULL;
 
-    uri_list = g_slist_prepend(uri_list, TESTDIR "/.apa.png");
-    uri_list = g_slist_prepend(uri_list, TESTDIR "/bepa.png");
-    uri_list = g_slist_prepend(uri_list, TESTDIR "/cepa.jpg");
-    uri_list = g_slist_prepend(uri_list, TESTDIR "/.depa.gif");
-    uri_list = g_slist_prepend(uri_list, TESTDIR "/test.txt");
-    uri_list = g_slist_prepend(uri_list, TESTDIR "/dir_two");
+    uri_list = add_path_to_list(uri_list, testdir_path, "/.apa.png");
+    uri_list = add_path_to_list(uri_list, testdir_path, "/bepa.png");
+    uri_list = add_path_to_list(uri_list, testdir_path, "/cepa.jpg");
+    uri_list = add_path_to_list(uri_list, testdir_path, "/.depa.gif");
+    uri_list = add_path_to_list(uri_list, testdir_path, "/test.txt");
+    uri_list = add_path_to_list(uri_list, testdir_path, "/dir_two");
 
 
     tree = create_tree_from_uri_list(uri_list, include_hidden, recursive, file_system_changed_callback, expected_callback_data, &error);
 
-    g_slist_free(uri_list);
+    g_slist_free_full(uri_list, free);
     assert_error_is_null(error);
     free(error);
     return tree;
@@ -96,19 +123,19 @@ GNode* uri_list_with_some_invalid_entries(gboolean include_hidden, gboolean recu
     GError *error = NULL;
     GSList *uri_list = NULL;
 
-    uri_list = g_slist_prepend(uri_list, TESTDIR "/.apa.png");
-    uri_list = g_slist_prepend(uri_list, TESTDIR "/bepa.png");
-    uri_list = g_slist_prepend(uri_list, TESTDIR "/NON_EXISTANT_FILE.jpg");
-    uri_list = g_slist_prepend(uri_list, TESTDIR "/cepa.jpg");
-    uri_list = g_slist_prepend(uri_list, TESTDIR "/dir_one/.secrets/img.jpg");
-    uri_list = g_slist_prepend(uri_list, TESTDIR "/.depa.gif");
-    uri_list = g_slist_prepend(uri_list, TESTDIR "/test.txt");
-    uri_list = g_slist_prepend(uri_list, TESTDIR "/dir_two");
-    uri_list = g_slist_prepend(uri_list, TESTDIR "/NON_EXISTANT_DIR");
+    uri_list = add_path_to_list(uri_list, testdir_path, "/.apa.png");
+    uri_list = add_path_to_list(uri_list, testdir_path, "/bepa.png");
+    uri_list = add_path_to_list(uri_list, testdir_path, "/NON_EXISTANT_FILE.jpg");
+    uri_list = add_path_to_list(uri_list, testdir_path, "/cepa.jpg");
+    uri_list = add_path_to_list(uri_list, testdir_path, "/dir_one/.secrets/img.jpg");
+    uri_list = add_path_to_list(uri_list, testdir_path, "/.depa.gif");
+    uri_list = add_path_to_list(uri_list, testdir_path, "/test.txt");
+    uri_list = add_path_to_list(uri_list, testdir_path, "/dir_two");
+    uri_list = add_path_to_list(uri_list, testdir_path, "/NON_EXISTANT_DIR");
 
     tree = create_tree_from_uri_list(uri_list, include_hidden, recursive, file_system_changed_callback, expected_callback_data, &error);
 
-    g_slist_free(uri_list);
+    g_slist_free_full(uri_list, free);
     assert_error_is_null(error);
     free(error);
     return tree;
@@ -119,13 +146,13 @@ GNode* uri_list_with_only_invalid_entries(gboolean include_hidden, gboolean recu
     GError *error = NULL;
     GSList *uri_list = NULL;
 
-    uri_list = g_slist_prepend(uri_list, TESTDIR "/NON_EXISTANT_FILE.jpg");
-    uri_list = g_slist_prepend(uri_list, TESTDIR "/NON_EXISTANT_DIR");
+    uri_list = add_path_to_list(uri_list, testdir_path, "/NON_EXISTANT_FILE.jpg");
+    uri_list = add_path_to_list(uri_list, testdir_path, "/NON_EXISTANT_DIR");
 
 
     tree = create_tree_from_uri_list(uri_list, include_hidden, recursive, file_system_changed_callback, expected_callback_data, &error);
 
-    g_slist_free(uri_list);
+    g_slist_free_full(uri_list, free);
     assert_error_is_null(error);
     free(error);
     return tree;
@@ -172,15 +199,19 @@ char* print_and_free_tree(GNode *tree) {
 ///////////////////////////////
 
 
-void create_dir(const char *path) {
+void create_dir(char *parent_dir, char *dir_name) {
+    char *path = append_strings(parent_dir, dir_name);
     struct stat st = {0};
 
     if(stat(path, &st) == -1) {
         mkdir(path, 0700);
     }
+    free(path);
 }
 
-void create_file(const char *path) {
+void create_file(char *parent_dir, char *filename) {
+    char *path = append_strings(parent_dir, filename);
+
     char *dot = strrchr(path, '.');
     if(dot && (!strcmp(dot, ".jpg") || !strcmp(dot, ".png") || !strcmp(dot, ".gif"))) {
         // Write binary image data.
@@ -212,52 +243,59 @@ void create_file(const char *path) {
         // Create empty file
         fclose(fopen(path, "w"));
     }
+    free(path);
 }
 
 void create_file_structure() {
 
-    create_dir (TESTDIR "");
-    create_file(TESTDIR "/test.txt");
-    create_file(TESTDIR "/cepa.jpg");
-    create_file(TESTDIR "/.apa.png");
-    create_file(TESTDIR "/not_an_image.yo");
-    create_file(TESTDIR "/.depa.gif");
-    create_file(TESTDIR "/bepa.png");
-    create_file(TESTDIR "/epa.png");
+    create_dir (testdir_path, "");
+    create_file(testdir_path, "/test.txt");
+    create_file(testdir_path, "/cepa.jpg");
+    create_file(testdir_path, "/.apa.png");
+    create_file(testdir_path, "/not_an_image.yo");
+    create_file(testdir_path, "/.depa.gif");
+    create_file(testdir_path, "/bepa.png");
+    create_file(testdir_path, "/epa.png");
 
-    create_dir (TESTDIR "/dir_one");
-    create_file(TESTDIR "/dir_one/one.txt");
-    create_file(TESTDIR "/dir_one/two.jpg");
-    create_file(TESTDIR "/dir_one/.three.png");
+    create_dir (testdir_path, "/dir_one");
+    create_file(testdir_path, "/dir_one/one.txt");
+    create_file(testdir_path, "/dir_one/two.jpg");
+    create_file(testdir_path, "/dir_one/.three.png");
 
-    create_dir (TESTDIR "/dir_one/.secrets");
-    create_file(TESTDIR "/dir_one/.secrets/img.jpg");
+    create_dir (testdir_path, "/dir_one/.secrets");
+    create_file(testdir_path, "/dir_one/.secrets/img.jpg");
 
-    create_dir (TESTDIR "/dir_two");
-    create_file(TESTDIR "/dir_two/bepa.png");
+    create_dir (testdir_path, "/dir_two");
+    create_file(testdir_path, "/dir_two/bepa.png");
 
-    create_dir (TESTDIR "/dir_two/sub_dir_two");
-    create_file(TESTDIR "/dir_two/sub_dir_two/img0.png");
-    create_file(TESTDIR "/dir_two/sub_dir_two/img2.png");
-    create_file(TESTDIR "/dir_two/sub_dir_two/img1.png");
-    create_file(TESTDIR "/dir_two/sub_dir_two/img3.png");
+    create_dir (testdir_path, "/dir_two/sub_dir_two");
+    create_file(testdir_path, "/dir_two/sub_dir_two/img0.png");
+    create_file(testdir_path, "/dir_two/sub_dir_two/img2.png");
+    create_file(testdir_path, "/dir_two/sub_dir_two/img1.png");
+    create_file(testdir_path, "/dir_two/sub_dir_two/img3.png");
 
-    create_dir (TESTDIR "/dir_two/sub_dir_one");
-    create_file(TESTDIR "/dir_two/sub_dir_one/img0.png");
-    create_file(TESTDIR "/dir_two/sub_dir_one/img2.png");
-    create_file(TESTDIR "/dir_two/sub_dir_one/img1.png");
+    create_dir (testdir_path, "/dir_two/sub_dir_one");
+    create_file(testdir_path, "/dir_two/sub_dir_one/img0.png");
+    create_file(testdir_path, "/dir_two/sub_dir_one/img2.png");
+    create_file(testdir_path, "/dir_two/sub_dir_one/img1.png");
 
-    create_file(TESTDIR "/dir_two/apa.png");
-    create_file(TESTDIR "/dir_two/cepa.png");
+    create_file(testdir_path, "/dir_two/apa.png");
+    create_file(testdir_path, "/dir_two/cepa.png");
 
-    create_dir (TESTDIR "/dir_two/sub_dir_three");
-    create_dir (TESTDIR "/dir_two/sub_dir_four");
-    create_dir (TESTDIR "/dir_two/sub_dir_four/subsub");
+    create_dir (testdir_path, "/dir_two/sub_dir_three");
+    create_dir (testdir_path, "/dir_two/sub_dir_four");
+    create_dir (testdir_path, "/dir_two/sub_dir_four/subsub");
 }
 
+void remove_file(char *dir, char *filename) {
+    char *path = append_strings(dir, filename);
+    unlink(path);
+    free(path);
+}
 
+int remove_directory(char *parent_dir, char *sub_dir) {
+    char *path = append_strings(parent_dir, sub_dir);
 
-int remove_directory(const char *path) {
     DIR *d = opendir(path);
     size_t path_len = strlen(path);
     int r = -1;
@@ -286,7 +324,7 @@ int remove_directory(const char *path) {
 
                 if(!stat(buf, &statbuf)) {
                     if(S_ISDIR(statbuf.st_mode)) {
-                        r2 = remove_directory(buf);
+                        r2 = remove_directory(buf, "");
                     } else {
                         r2 = unlink(buf);
                     }
@@ -303,17 +341,46 @@ int remove_directory(const char *path) {
         r = rmdir(path);
     }
 
+    free(path);
     return r;
 }
 
 void remove_test_directory() {
-    remove_directory(TESTDIR);
+    remove_directory(testdir_path, "");
 }
+
+static void create_temp_dir() {
+    create_dir(TESTDIRBASE, TESTDIRNAME);
+    char template[] = TESTDIRBASE TESTDIRNAME "/XXXXXX";
+    char *dir_name = mkdtemp(template);
+    testdir_path = append_strings(dir_name, "/" TESTDIRNAME);
+}
+
+static void remove_temp_dir() {
+    char parent[strlen(testdir_path)];
+    const char *last_slash = strrchr(testdir_path, '/');
+    if(last_slash) {
+        strncpy(parent, testdir_path, last_slash - testdir_path);
+        parent[last_slash - testdir_path] = '\0';
+
+        remove_directory(parent, "");
+    }
+    free(testdir_path);
+}
+
 
 
 ///////////////////////////////
 
 
+
+void before_all() {
+    create_temp_dir();
+}
+
+void after_all() {
+    remove_temp_dir();
+}
 
 void before() {
     output = (char*) malloc(sizeof(char) * OUTPUTSIZE);

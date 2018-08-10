@@ -37,7 +37,7 @@ static void test_filemonitor_create_file_in_folder_nonrecursive() {
     assert_equals("File monitor before create in root ─ Include hidden files: F ─ Recursive: F", expected, output);
 
 
-    create_file(TESTDIR "/fepa.jpg");
+    create_file(testdir_path, "/fepa.jpg");
 
     char* expected_after = KWHT TESTDIRNAME RESET " (4 children)\n\
 ├─ bepa.png\n\
@@ -87,7 +87,7 @@ static void test_filemonitor_create_file_in_folder_recursive() {
     assert_equals("File monitor before create in subdir ─ Include hidden files: F ─ Recursive: T", expected, output);
 
 
-    create_file(TESTDIR "/dir_two/sub_dir_one/img3.png");
+    create_file(testdir_path, "/dir_two/sub_dir_one/img3.png");
 
     char* expected_after = KWHT TESTDIRNAME RESET " (5 children)\n\
 ├─ bepa.png\n\
@@ -137,7 +137,7 @@ static void test_filemonitor_create_hidden_file_in_folder_nonrecursive() {
     assert_equals("File monitor before create hidden in root ─ Include hidden files: F ─ Recursive: F", expected, output);
 
 
-    create_file(TESTDIR "/.epa.jpg");
+    create_file(testdir_path, "/.epa.jpg");
 
     char* expected_after = KWHT TESTDIRNAME RESET " (3 children)\n\
 ├─ bepa.png\n\
@@ -187,10 +187,10 @@ static void test_filemonitor_create_multiple_files_in_folder_recursive() {
     assert_equals("File monitor before create multiple files in subdirs ─ Include hidden files: F ─ Recursive: T", expected, output);
 
 
-    create_file(TESTDIR "/dir_two/sub_dir_one/img3.png");
-    create_file(TESTDIR "/dir_two/depa.png");
-    create_file(TESTDIR "/dir_two/sub_dir_four/subsub/img.png");
-    create_file(TESTDIR "/apa.png");
+    create_file(testdir_path, "/dir_two/sub_dir_one/img3.png");
+    create_file(testdir_path, "/dir_two/depa.png");
+    create_file(testdir_path, "/dir_two/sub_dir_four/subsub/img.png");
+    create_file(testdir_path, "/apa.png");
 
     char* expected_after = KWHT TESTDIRNAME RESET " (6 children)\n\
 ├─ apa.png\n\
@@ -243,7 +243,7 @@ static void test_filemonitor_create_file_in_folder_sorted() {
     assert_equals("File monitor before create file in folder sorted ─ Include hidden files: F ─ Recursive: F", expected, output);
 
 
-    create_file(TESTDIR "/bepb.png");
+    create_file(testdir_path, "/bepb.png");
 
     char* expected_after = KWHT TESTDIRNAME RESET " (4 children)\n\
 ├─ bepa.png\n\
@@ -294,7 +294,7 @@ static void test_filemonitor_create_folder_in_folder_sorted() {
     assert_equals("File monitor before create folder in folder sorted ─ Include hidden files: F ─ Recursive: T", expected, output);
 
 
-    create_dir (TESTDIR "/dir_onf");
+    create_dir (testdir_path, "/dir_onf");
 
     char* expected_after = KWHT TESTDIRNAME RESET " (6 children)\n\
 ├─ bepa.png\n\
@@ -363,9 +363,9 @@ static void test_filemonitor_recursive_create_dir_then_create_files_in_it() {
     assert_equals("File monitor before create dir with files ─ Include hidden files: F ─ Recursive: T", expected, output);
 
 
-    create_dir (TESTDIR "/dir_w00t");
-    create_file(TESTDIR "/dir_w00t/apa.png");
-    create_file(TESTDIR "/dir_w00t/bepa.png");
+    create_dir (testdir_path, "/dir_w00t");
+    create_file(testdir_path, "/dir_w00t/apa.png");
+    create_file(testdir_path, "/dir_w00t/bepa.png");
 
     char* expected_after = KWHT TESTDIRNAME RESET " (6 children)\n\
 ├─ bepa.png\n\
@@ -420,9 +420,9 @@ static void test_filemonitor_nonrecursive_create_dir_then_create_files_in_it() {
     assert_equals("File monitor before create dir with files ─ Include hidden files: F ─ Recursive: F", expected, output);
 
 
-    create_dir (TESTDIR "/dir_three");
-    create_file(TESTDIR "/dir_three/apa.png");
-    create_file(TESTDIR "/dir_three/bepa.png");
+    create_dir (testdir_path, "/dir_three");
+    create_file(testdir_path, "/dir_three/apa.png");
+    create_file(testdir_path, "/dir_three/bepa.png");
 
     char* expected_after = KWHT TESTDIRNAME RESET " (3 children)\n\
 ├─ bepa.png\n\

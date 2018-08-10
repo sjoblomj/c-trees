@@ -40,7 +40,7 @@ static void test_filemonitor_uriList_create_file_in_root() {
     assert_equals("File monitor before urilist create file in root ─ Include hidden files: F ─ Recursive: F", expected, output);
 
 
-    create_file(TESTDIR "/apa.png");
+    create_file(testdir_path, "/apa.png");
 
     char* expected_after = KWHT "<ROOT>" RESET " (3 children)\n\
 ├─ bepa.png\n\
@@ -79,9 +79,9 @@ static void test_filemonitor_uriList_create_dir_in_root() {
 
 
 
-    create_dir (TESTDIR "/dir_three");
-    create_file(TESTDIR "/dir_three/apa.png");
-    create_file(TESTDIR "/dir_three/bepa.png");
+    create_dir (testdir_path, "/dir_three");
+    create_file(testdir_path, "/dir_three/apa.png");
+    create_file(testdir_path, "/dir_three/bepa.png");
 
     char* expected_after = KWHT "<ROOT>" RESET " (3 children)\n\
 ├─ bepa.png\n\
@@ -119,7 +119,7 @@ static void test_filemonitor_uriList_create_file_in_watched_dir() {
 
 
 
-    create_file(TESTDIR "/dir_two/depa.png");
+    create_file(testdir_path, "/dir_two/depa.png");
 
     char* expected_after = KWHT "<ROOT>" RESET " (3 children)\n\
 ├─ bepa.png\n\
@@ -158,7 +158,7 @@ static void test_filemonitor_uriList_create_file_in_nonwatched_dir() {
 
 
 
-    create_file(TESTDIR "/dir_one/depa.png");
+    create_file(testdir_path, "/dir_one/depa.png");
 
     char* expected_after = KWHT "<ROOT>" RESET " (3 children)\n\
 ├─ bepa.png\n\
@@ -190,7 +190,7 @@ static void test_filemonitor_uriList_create_file_in_empty_root() {
 
 
 
-    create_file(TESTDIR "/depa.png");
+    create_file(testdir_path, "/depa.png");
 
     char* expected_after = KWHT "<ROOT>" RESET " (0 children)\n\
 ";

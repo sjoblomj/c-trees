@@ -81,10 +81,11 @@ static void test_addNodeInTree_TreesIn() {
     after();
 }
 
-static void test_addNodeInTree_DouplicateNode() {
+static void test_addNodeInTree_DuplicateNode() {
     before();
+    char *path = get_absolute_path(testdir_path, "/cepa.jpg");
 
-    VnrFile *vnrfile = vnr_file_create_new(TESTDIR "/cepa.jpg", "cepa.jpg", FALSE);
+    VnrFile *vnrfile = vnr_file_create_new(path, "cepa.jpg", FALSE);
     GNode *node = g_node_new(vnrfile);
 
     GNode *tree = get_tree(SINGLE_FILE, FALSE, FALSE);
@@ -97,16 +98,18 @@ static void test_addNodeInTree_DouplicateNode() {
 └─ epa.png\n\
 ";
 
-    assert_equals("Add node in tree ─ Douplicate node: F ─ Recursive: F", expected, print_and_free_tree(tree));
+    assert_equals("Add node in tree ─ Duplicate node: F ─ Recursive: F", expected, print_and_free_tree(tree));
 
+    free(path);
     free_whole_tree(node);
     after();
 }
 
 static void test_addNodeInTree_TreeIsLeaf() {
     before();
+    char *path = append_strings(testdir_path, "/cepa.jpg");
 
-    VnrFile *vnrfile = vnr_file_create_new(TESTDIR "/cepa.jpg", "cepa.jpg", FALSE);
+    VnrFile *vnrfile = vnr_file_create_new(path, "cepa.jpg", FALSE);
     GNode *node = g_node_new(vnrfile);
 
     GNode *tree = get_tree(SINGLE_FILE, FALSE, FALSE);
@@ -121,6 +124,8 @@ static void test_addNodeInTree_TreeIsLeaf() {
 ";
 
     assert_equals("Add node in tree ─ Tree is leaf ─ No change", expected, print_and_free_tree(tree));
+
+    free(path);
     free_whole_tree(node);
     after();
 }
@@ -130,6 +135,6 @@ static void test_addNodeInTree_TreeIsLeaf() {
 void test_tree_addnode() {
     test_addNodeInTree_NullIn();
     test_addNodeInTree_TreesIn();
-    test_addNodeInTree_DouplicateNode();
+    test_addNodeInTree_DuplicateNode();
     test_addNodeInTree_TreeIsLeaf();
 }

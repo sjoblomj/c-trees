@@ -55,7 +55,14 @@ static void test_filemonitor_move_file_in_same_dir() {
     assert_equals("File monitor before move file in same dir ─ Include hidden files: F ─ Recursive: T", expected, output);
 
 
-    rename(TESTDIR "/cepa.jpg", TESTDIR "/depa.jpg");
+    char *path_src = append_strings(testdir_path, "/cepa.jpg");
+    char *path_dst = append_strings(testdir_path, "/depa.jpg");
+
+    rename(path_src, path_dst);
+
+    free(path_src);
+    free(path_dst);
+
 
     char* expected_after = KWHT TESTDIRNAME RESET " (5 children)\n\
 ├─ bepa.png\n\
@@ -124,7 +131,13 @@ static void test_filemonitor_move_file_to_subdir() {
     assert_equals("File monitor before move file to subdir ─ Include hidden files: F ─ Recursive: T", expected, output);
 
 
-    rename(TESTDIR "/cepa.jpg", TESTDIR "/dir_one/depa.jpg");
+    char *path_src = append_strings(testdir_path, "/cepa.jpg");
+    char *path_dst = append_strings(testdir_path, "/dir_one/depa.jpg");
+
+    rename(path_src, path_dst);
+
+    free(path_src);
+    free(path_dst);
 
     char* expected_after = KWHT TESTDIRNAME RESET " (4 children)\n\
 ├─ bepa.png\n\
@@ -193,7 +206,13 @@ static void test_filemonitor_move_file_to_parent_dir() {
     assert_equals("File monitor before move file in subdir to root ─ Include hidden files: F ─ Recursive: T", expected, output);
 
 
-    rename(TESTDIR "/dir_two/apa.png", TESTDIR "/apa.png");
+    char *path_src = append_strings(testdir_path, "/dir_two/apa.png");
+    char *path_dst = append_strings(testdir_path, "/apa.png");
+
+    rename(path_src, path_dst);
+
+    free(path_src);
+    free(path_dst);
 
     char* expected_after = KWHT TESTDIRNAME RESET " (6 children)\n\
 ├─ apa.png\n\
@@ -262,7 +281,13 @@ static void test_filemonitor_move_dir_in_same_dir() {
     assert_equals("File monitor before move dir in root ─ Include hidden files: F ─ Recursive: T", expected, output);
 
 
-    rename(TESTDIR "/dir_one", TESTDIR "/dir_moved");
+    char *path_src = append_strings(testdir_path, "/dir_one");
+    char *path_dst = append_strings(testdir_path, "/dir_moved");
+
+    rename(path_src, path_dst);
+
+    free(path_src);
+    free(path_dst);
 
     char* expected_after = KWHT TESTDIRNAME RESET " (5 children)\n\
 ├─ bepa.png\n\

@@ -41,7 +41,7 @@ static void test_filemonitor_uriList_delete_file_under_root() {
 
 
 
-    unlink(TESTDIR "/bepa.png");
+    remove_file(testdir_path, "/bepa.png");
 
     char* expected_after = KWHT "<ROOT>" RESET " (2 children)\n\
 ├─ cepa.jpg\n\
@@ -79,7 +79,7 @@ static void test_filemonitor_uriList_delete_nonwatched_file_under_root() {
 
 
 
-    unlink(TESTDIR "/epa.png");
+    remove_file(testdir_path, "/epa.png");
 
     char* expected_after = KWHT "<ROOT>" RESET " (3 children)\n\
 ├─ bepa.png\n\
@@ -111,7 +111,7 @@ static void test_filemonitor_uriList_delete_nonwatched_file_under_empty_root() {
 
 
 
-    unlink(TESTDIR "/epa.png");
+    remove_file(testdir_path, "/epa.png");
 
     char* expected_after = KWHT "<ROOT>" RESET " (0 children)\n\
 ";
@@ -143,7 +143,7 @@ static void test_filemonitor_uriList_delete_file_under_watched_dir() {
 
 
 
-    unlink(TESTDIR "/dir_two/bepa.png");
+    remove_file(testdir_path, "/dir_two/bepa.png");
 
     char* expected_after = KWHT "<ROOT>" RESET " (3 children)\n\
 ├─ bepa.png\n\
@@ -180,7 +180,7 @@ static void test_filemonitor_uriList_delete_file_under_nonwatched_dir() {
 
 
 
-    unlink(TESTDIR "/dir_one/two.jpg");
+    remove_file(testdir_path, "/dir_one/two.jpg");
 
     char* expected_after = KWHT "<ROOT>" RESET " (3 children)\n\
 ├─ bepa.png\n\

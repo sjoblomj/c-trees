@@ -35,6 +35,7 @@
 #include "utils.h"
 
 int main() {
+    before_all();
 
     test_tree_singlefile();
     test_tree_folder();
@@ -49,6 +50,12 @@ int main() {
     test_filemon_delete();
     test_filemon_urilist_delete();
     test_filemon_move();
+
+    after_all();
+
+    if(errors > 0) {
+        printf("%i tests failed", errors);
+    }
 
     return errors == 0 ? 0 : -1;
 }

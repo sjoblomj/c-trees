@@ -310,7 +310,8 @@ vnr_file_get_file_info(char *filepath,
     GFile *file;
     GFileInfo *fileinfo;
     const char *mimetype;
-    char* display_name;
+    char *display_name;
+    char *full_filepath;
     gboolean file_info_success;
     gboolean is_directory;
     gboolean supported_mime_type = FALSE;
@@ -335,7 +336,9 @@ vnr_file_get_file_info(char *filepath,
         }
 
         if(is_directory || supported_mime_type) {
-            *vnrfile = vnr_file_create_new(filepath, display_name, is_directory);
+            full_filepath = g_file_get_path(file);
+            *vnrfile = vnr_file_create_new(full_filepath, display_name, is_directory);
+            free(full_filepath);
         }
         free(display_name);
     }

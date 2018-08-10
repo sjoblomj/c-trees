@@ -58,10 +58,10 @@ static void test_getNextInTree_RootWithOnlyDir() {
 static void test_getNextInTree_SingleFolder_RootWithOnlyThreeDirs() {
     // No before!
 
-    create_dir(TESTDIR);
-    create_dir(TESTDIR "/apa");
-    create_dir(TESTDIR "/bepa");
-    create_dir(TESTDIR "/cepa");
+    create_dir(testdir_path, "");
+    create_dir(testdir_path, "/apa");
+    create_dir(testdir_path, "/bepa");
+    create_dir(testdir_path, "/cepa");
 
     GNode *tree = single_folder(TRUE, TRUE);
 
@@ -76,20 +76,20 @@ static void test_getNextInTree_SingleFolder_RootWithOnlyThreeDirs() {
 static void test_getNextInTree_UriList_RootWithOnlyThreeDirs() {
     // No before!
 
-    create_dir(TESTDIR);
-    create_dir(TESTDIR "/apa");
-    create_dir(TESTDIR "/bepa");
-    create_dir(TESTDIR "/cepa");
+    create_dir(testdir_path, "");
+    create_dir(testdir_path, "/apa");
+    create_dir(testdir_path, "/bepa");
+    create_dir(testdir_path, "/cepa");
 
     GSList *uri_list = NULL;
-    uri_list = g_slist_prepend(uri_list, TESTDIR "/bepa.png");
-    uri_list = g_slist_prepend(uri_list, TESTDIR "/cepa.jpg");
+    uri_list = add_path_to_list(uri_list, testdir_path, "/bepa.png");
+    uri_list = add_path_to_list(uri_list, testdir_path, "/cepa.jpg");
 
     GError *error = NULL;
     GNode *tree = create_tree_from_uri_list(uri_list, TRUE, TRUE, NULL, NULL, &error);
     assert_error_is_null(error);
     free(error);
-    g_slist_free(uri_list);
+    g_slist_free_full(uri_list, free);
 
     assert_trees_equal("Get Next ─ Uri List ─ Input is Root with only three dirs", tree, get_next_in_tree(tree));
     assert_trees_equal("Get First ─ Uri List ─ Input is Root with only three dirs", tree, get_first_in_tree(tree));

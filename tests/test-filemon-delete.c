@@ -39,7 +39,7 @@ static void test_filemonitor_delete_file_in_folder_root() {
     assert_equals("File monitor before delete in dirroot ─ Include hidden files: T ─ Recursive: F", expected, output);
 
 
-    unlink(TESTDIR "/bepa.png");
+    remove_file(testdir_path, "/bepa.png");
 
     char* expected_after = KWHT TESTDIRNAME RESET " (4 children)\n\
 ├─ .apa.png\n\
@@ -73,7 +73,7 @@ static void test_filemonitor_delete_hidden_file_in_folder_root() {
     assert_equals("File monitor before delete hidden ─ Include hidden files: T ─ Recursive: F", expected, output);
 
 
-    unlink(TESTDIR "/.apa.png");
+    remove_file(testdir_path, "/.apa.png");
 
     char* expected_after = KWHT TESTDIRNAME RESET " (4 children)\n\
 ├─ .depa.gif\n\
@@ -124,7 +124,7 @@ static void test_filemonitor_delete_file_in_sub_folder() {
     assert_equals("File monitor before delete in subdir ─ Include hidden files: F ─ Recursive: T", expected, output);
 
 
-    unlink(TESTDIR "/dir_two/sub_dir_one/img1.png");
+    remove_file(testdir_path, "/dir_two/sub_dir_one/img1.png");
 
     char* expected_after = KWHT TESTDIRNAME RESET " (5 children)\n\
 ├─ bepa.png\n\
@@ -190,9 +190,9 @@ static void test_filemonitor_delete_multiple_files() {
     assert_equals("File monitor before delete in subdir ─ Include hidden files: F ─ Recursive: T", expected, output);
 
 
-    unlink(TESTDIR "/dir_two/sub_dir_one/img1.png");
-    unlink(TESTDIR "/dir_two/bepa.png");
-    unlink(TESTDIR "/dir_two/sub_dir_two/img2.png");
+    remove_file(testdir_path, "/dir_two/sub_dir_one/img1.png");
+    remove_file(testdir_path, "/dir_two/bepa.png");
+    remove_file(testdir_path, "/dir_two/sub_dir_two/img2.png");
 
     char* expected_after = KWHT TESTDIRNAME RESET " (5 children)\n\
 ├─ bepa.png\n\
@@ -256,7 +256,7 @@ static void test_filemonitor_delete_subsub_folder() {
     assert_equals("File monitor before delete subsubdir ─ Include hidden files: F ─ Recursive: T", expected, output);
 
 
-    remove_directory(TESTDIR "/dir_two/sub_dir_one/");
+    remove_directory(testdir_path, "/dir_two/sub_dir_one/");
 
     char* expected_after = KWHT TESTDIRNAME RESET " (5 children)\n\
 ├─ bepa.png\n\
@@ -321,7 +321,7 @@ static void test_filemonitor_delete_sub_folder() {
     assert_equals("File monitor before delete subdir ─ Include hidden files: F ─ Recursive: T", expected, output);
 
 
-    remove_directory(TESTDIR "/dir_two/");
+    remove_directory(testdir_path, "/dir_two/");
 
     char* expected_after = KWHT TESTDIRNAME RESET " (4 children)\n\
 ├─ bepa.png\n\
@@ -373,7 +373,7 @@ static void test_filemonitor_delete_root_folder() {
     assert_equals("File monitor before delete root ─ Include hidden files: F ─ Recursive: T", expected, output);
 
 
-    remove_directory(TESTDIR);
+    remove_directory(testdir_path, "");
 
 
     wait_until_tree_is_null();

@@ -33,20 +33,25 @@
 #include "../src/vnrfile.h"
 #include "tree-printer.h"
 
+#define TESTDIRNAME "c-trees-tests"
+#define TESTDIRBASE "/tmp/"
+
 #define KRED  "\x1B[31m"
 #define KGRN  "\x1B[32m"
 #define KWHT  "\033[1m\033[37m"
 #define RESET "\x1B[0m"
 #define OUTPUTSIZE 2048
-#define TESTDIRNAME "c-trees-tests"
-#define TESTDIR "/tmp/" TESTDIRNAME
 
+extern char* testdir_path;
 extern int errors;
 char* output;
 GNode* monitor_test_tree;
 
 typedef enum {SINGLE_FILE, SINGLE_FOLDER, VALID_LIST, SEMI_INVALID_LIST, COMPLETELY_INVALID_LIST} inputtype;
 
+char* append_strings(char* base_str, char* append_str);
+GSList* add_path_to_list(GSList *list, char *parent_dir, char *filename);
+char* get_absolute_path(char *dir, char *filename);
 
 GNode* single_file(gboolean include_hidden, gboolean recursive);
 GNode* single_folder(gboolean include_hidden, gboolean recursive);
@@ -57,12 +62,15 @@ GNode* get_tree(inputtype type, gboolean include_hidden, gboolean recursive);
 char* print_and_free_tree(GNode *tree);
 GNode* uri_list_with_no_entries(gboolean include_hidden, gboolean recursive);
 
-void create_dir(const char *path);
-void create_file(const char *path);
+void create_dir(char *parent_dir, char *dir_name);
+void create_file(char *parent_dir, char *filename);
 void create_file_structure();
-int remove_directory(const char *path);
+void remove_file(char* dir, char *filename);
+int remove_directory(char *parent_dir, char *path);
 void remove_test_directory();
 
+void before_all();
+void after_all();
 void before();
 void after();
 void reset_output();

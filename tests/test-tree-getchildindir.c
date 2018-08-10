@@ -62,12 +62,17 @@ static void test_getChildInDirectory_FindFromRoot_FileExists() {
 //     ├─ img2.png
 //     └─ img3.png
 
-    GNode *child0 = get_child_in_directory(tree, TESTDIR "/bepa.png");
-    GNode *child1 = get_child_in_directory(tree, TESTDIR "/dir_two/bepa.png");
+    char *path0 = get_absolute_path(testdir_path, "/bepa.png");
+    char *path1 = get_absolute_path(testdir_path, "/dir_two/bepa.png");
 
-    assert_child_is_equal("Get child in directory ─ From root ─ File exists", child0, TESTDIR "/bepa.png");
-    assert_child_is_equal("Get child in directory ─ From root ─ File exists", child1, TESTDIR "/dir_two/bepa.png");
+    GNode *child0 = get_child_in_directory(tree, path0);
+    GNode *child1 = get_child_in_directory(tree, path1);
 
+    assert_child_is_equal("Get child in directory ─ From root ─ File exists", child0, path0);
+    assert_child_is_equal("Get child in directory ─ From root ─ File exists", child1, path1);
+
+    free(path0);
+    free(path1);
     free_whole_tree(tree);
     after();
 }
@@ -106,17 +111,24 @@ static void test_getChildInDirectory_FindFromFileAndDir_FileExists() {
 //     ├─ img2.png
 //     └─ img3.png
 
-    GNode *child0 = get_child_in_directory(tree, TESTDIR "/bepa.png");
+    char *path0 = get_absolute_path(testdir_path, "/bepa.png");
+    char *path1 = get_absolute_path(testdir_path, "/dir_two");
+    char *path2 = get_absolute_path(testdir_path, "/dir_two/bepa.png");
+
+    GNode *child0 = get_child_in_directory(tree, path0);
     GNode *child1 = g_node_last_child(get_root_node(tree));
-    assert_child_is_equal("Get child in directory ─ Find bepa.png", child0, TESTDIR "/bepa.png");
-    assert_child_is_equal("Get child in directory ─ Last child is dir_two", child1, TESTDIR "/dir_two");
+    assert_child_is_equal("Get child in directory ─ Find bepa.png", child0, path0);
+    assert_child_is_equal("Get child in directory ─ Last child is dir_two", child1, path1);
 
-    GNode *child2 = get_child_in_directory(child0, TESTDIR "/dir_two/bepa.png");
-    GNode *child3 = get_child_in_directory(child1, TESTDIR "/dir_two/bepa.png");
+    GNode *child2 = get_child_in_directory(child0, path2);
+    GNode *child3 = get_child_in_directory(child1, path2);
 
-    assert_child_is_equal("Get child in directory ─ From file ─ File exists", child2, TESTDIR "/dir_two/bepa.png");
-    assert_child_is_equal("Get child in directory ─ From subdir ─ File exists", child3, TESTDIR "/dir_two/bepa.png");
+    assert_child_is_equal("Get child in directory ─ From file ─ File exists", child2, path2);
+    assert_child_is_equal("Get child in directory ─ From subdir ─ File exists", child3, path2);
 
+    free(path0);
+    free(path1);
+    free(path2);
     free_whole_tree(tree);
     after();
 }
@@ -155,13 +167,18 @@ static void test_getChildInDirectory_FindAbove_FileExists() {
 //     ├─ img2.png
 //     └─ img3.png
 
+    char *path0 = get_absolute_path(testdir_path, "/dir_two");
+    char *path1 = get_absolute_path(testdir_path, "/epa.png");
+
     GNode *child0 = g_node_last_child(get_root_node(tree));
-    assert_child_is_equal("Get child in directory ─ Find above ─ Last child is dir_two", child0, TESTDIR "/dir_two");
+    assert_child_is_equal("Get child in directory ─ Find above ─ Last child is dir_two", child0, path0);
 
-    GNode *child1 = get_child_in_directory(child0, TESTDIR "/epa.png");
+    GNode *child1 = get_child_in_directory(child0, path1);
 
-    assert_child_is_equal("Get child in directory ─ Find above ─ File exists", child1, TESTDIR "/epa.png");
+    assert_child_is_equal("Get child in directory ─ Find above ─ File exists", child1, path1);
 
+    free(path0);
+    free(path1);
     free_whole_tree(tree);
     after();
 }
@@ -200,13 +217,18 @@ static void test_getChildInDirectory_FileDoesNotExist() {
 //     ├─ img2.png
 //     └─ img3.png
 
-    GNode *child = g_node_last_child(get_root_node(tree));
-    assert_child_is_equal("Get child in directory ─ File does not exist ─ Last child is dir_two", child, TESTDIR "/dir_two");
+    char *path0 = get_absolute_path(testdir_path, "/dir_two");
+    char *path1 = get_absolute_path(testdir_path, "/dir_two/depa.png");
 
-    child = get_child_in_directory(child, TESTDIR "/dir_two/depa.png");
+    GNode *child = g_node_last_child(get_root_node(tree));
+    assert_child_is_equal("Get child in directory ─ File does not exist ─ Last child is dir_two", child, path0);
+
+    child = get_child_in_directory(child, path1);
 
     assert_tree_is_null("Get child in directory ─ File does not exist", child);
 
+    free(path0);
+    free(path1);
     free_whole_tree(tree);
     after();
 }
@@ -245,6 +267,9 @@ static void test_getChildInDirectory_SearchFromSubDirectoryIsEmpty() {
 //     ├─ img2.png
 //     └─ img3.png
 
+    char *path0 = get_absolute_path(testdir_path, "/dir_two/sub_dir_four/subsub");
+    char *path1 = get_absolute_path(testdir_path, "/.apa.png");
+
     GNode *child = get_root_node(tree);
     child = g_node_last_child(child);
     child = g_node_first_child(child);
@@ -252,12 +277,14 @@ static void test_getChildInDirectory_SearchFromSubDirectoryIsEmpty() {
     child = g_node_next_sibling(child);
     child = g_node_next_sibling(child);
     child = g_node_first_child(child);
-    assert_child_is_equal("Get child in directory ─ From subdir ─ Last child is subsub", child, TESTDIR "/dir_two/sub_dir_four/subsub");
+    assert_child_is_equal("Get child in directory ─ From subdir ─ Last child is subsub", child, path0);
 
-    child = get_child_in_directory(child, TESTDIR "/.apa.png");
+    child = get_child_in_directory(child, path1);
 
-    assert_child_is_equal("Get child in directory ─ From subdir ─ File exists", child, TESTDIR "/.apa.png");
+    assert_child_is_equal("Get child in directory ─ From subdir ─ File exists", child, path1);
 
+    free(path0);
+    free(path1);
     free_whole_tree(tree);
     after();
 }
@@ -296,6 +323,9 @@ static void test_getChildInDirectory_DirectoryIsEmpty() {
 //     ├─ img2.png
 //     └─ img3.png
 
+    char *path0 = get_absolute_path(testdir_path, "/dir_two/sub_dir_four/subsub");
+    char *path1 = get_absolute_path(testdir_path, "/dir_two/sub_dir_four/subsub/apa.jpg");
+
     GNode *child = get_root_node(tree);
     child = g_node_last_child(child);
     child = g_node_first_child(child);
@@ -303,12 +333,14 @@ static void test_getChildInDirectory_DirectoryIsEmpty() {
     child = g_node_next_sibling(child);
     child = g_node_next_sibling(child);
     child = g_node_first_child(child);
-    assert_child_is_equal("Get child in directory ─ Last child is subsub", child, TESTDIR "/dir_two/sub_dir_four/subsub");
+    assert_child_is_equal("Get child in directory ─ Last child is subsub", child, path0);
 
-    child = get_child_in_directory(child, TESTDIR "/dir_two/sub_dir_four/subsub/apa.jpg");
+    child = get_child_in_directory(child, path1);
 
     assert_tree_is_null("Get child in directory ─ Directory is empty", child);
 
+    free(path0);
+    free(path1);
     free_whole_tree(tree);
     after();
 }
@@ -347,21 +379,26 @@ static void test_getChildInDirectory_FindRoot() {
 //     ├─ img2.png
 //     └─ img3.png
 
-    GNode *child = get_child_in_directory(tree, TESTDIR);
+    char *path0 = get_absolute_path(testdir_path, "");
 
-    assert_child_is_equal("Get child in directory ─ Find root", child, TESTDIR);
+    GNode *child = get_child_in_directory(tree, path0);
 
+    assert_child_is_equal("Get child in directory ─ Find root", child, path0);
+
+    free(path0);
     free_whole_tree(tree);
     after();
 }
 
 static void test_getChildInDirectory_DirectoryIsNull() {
     before();
+    char *path0 = get_absolute_path(testdir_path, "/dir_two/sub_dir_four/subsub/apa.jpg");
 
-    GNode *child = get_child_in_directory(NULL, TESTDIR "/dir_two/sub_dir_four/subsub/apa.jpg");
+    GNode *child = get_child_in_directory(NULL, path0);
 
     assert_tree_is_null("Get child in directory ─ Directory is empty", child);
 
+    free(path0);
     after();
 }
 
