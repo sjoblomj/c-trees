@@ -21,6 +21,8 @@
 #ifndef __TREE_PRINTER_H__
 #define __TREE_PRINTER_H__
 
+#include <glib.h>
+
 #define KWHT  "\033[1m\033[37m"
 #define RESET "\x1B[0m"
 #define OUTPUTSIZE 2048
