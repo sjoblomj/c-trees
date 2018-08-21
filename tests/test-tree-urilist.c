@@ -74,8 +74,9 @@ static void test_uriList_DontIncludeHidden_Recursive() {
   ├─ apa.png\n\
   ├─ bepa.png\n\
   ├─ cepa.png\n\
-  ├─┬" KWHT "sub_dir_four" RESET " (1 children)\n\
-  │ └──" KWHT "subsub" RESET " (0 children)\n\
+  ├─┬" KWHT "sub_dir_four" RESET " (2 children)\n\
+  │ ├──" KWHT "subsub" RESET " (0 children)\n\
+  │ └──" KWHT "subsub2" RESET " (0 children)\n\
   ├─┬" KWHT "sub_dir_one" RESET " (3 children)\n\
   │ ├─ img0.png\n\
   │ ├─ img1.png\n\
@@ -102,8 +103,9 @@ static void test_uriList_DontIncludeHidden_Recursive() {
   ├─ apa.png\n\
   ├─ bepa.png\n\
   ├─ cepa.png\n\
-  ├─┬" KWHT "sub_dir_four" RESET " (1 children)\n\
-  │ └──" KWHT "subsub" RESET " (0 children)\n\
+  ├─┬" KWHT "sub_dir_four" RESET " (2 children)\n\
+  │ ├──" KWHT "subsub" RESET " (0 children)\n\
+  │ └──" KWHT "subsub2" RESET " (0 children)\n\
   ├─┬" KWHT "sub_dir_one" RESET " (3 children)\n\
   │ ├─ img0.png\n\
   │ ├─ img1.png\n\
@@ -188,8 +190,9 @@ static void test_uriList_IncludeHidden_Recursive() {
   ├─ apa.png\n\
   ├─ bepa.png\n\
   ├─ cepa.png\n\
-  ├─┬" KWHT "sub_dir_four" RESET " (1 children)\n\
-  │ └──" KWHT "subsub" RESET " (0 children)\n\
+  ├─┬" KWHT "sub_dir_four" RESET " (2 children)\n\
+  │ ├──" KWHT "subsub" RESET " (0 children)\n\
+  │ └──" KWHT "subsub2" RESET " (0 children)\n\
   ├─┬" KWHT "sub_dir_one" RESET " (3 children)\n\
   │ ├─ img0.png\n\
   │ ├─ img1.png\n\
@@ -219,8 +222,9 @@ static void test_uriList_IncludeHidden_Recursive() {
   ├─ apa.png\n\
   ├─ bepa.png\n\
   ├─ cepa.png\n\
-  ├─┬" KWHT "sub_dir_four" RESET " (1 children)\n\
-  │ └──" KWHT "subsub" RESET " (0 children)\n\
+  ├─┬" KWHT "sub_dir_four" RESET " (2 children)\n\
+  │ ├──" KWHT "subsub" RESET " (0 children)\n\
+  │ └──" KWHT "subsub2" RESET " (0 children)\n\
   ├─┬" KWHT "sub_dir_one" RESET " (3 children)\n\
   │ ├─ img0.png\n\
   │ ├─ img1.png\n\
@@ -247,10 +251,33 @@ static void test_uriList_IncludeHidden_Recursive() {
 }
 
 
+static void assert_node_has_path(char* path, gboolean include_hidden, gboolean recursive) {
+    GNode *tree = get_tree(SEMI_INVALID_LIST, include_hidden, recursive);
+    assert_equals("Node returned is the first in folder ─ Include hidden files: T ─ Recursive: T", path, ((VnrFile*) (tree->data))->path);
+    free_whole_tree(tree);
+}
+
+static void test_uriList_nodeHasTheRequestedPath() {
+    before();
+    char *path_normal = get_absolute_path(testdir_path, "/bepa.png");
+    char *path_hidden = get_absolute_path(testdir_path, "/.apa.png");
+
+    assert_node_has_path(path_normal, FALSE, FALSE);
+    assert_node_has_path(path_normal, FALSE, TRUE);
+    assert_node_has_path(path_hidden, TRUE, FALSE);
+    assert_node_has_path(path_hidden, TRUE, TRUE);
+
+    free(path_normal);
+    free(path_hidden);
+    after();
+}
+
+
 
 void test_tree_urilist() {
     test_uriList_DontIncludeHidden_NotRecursive();
     test_uriList_DontIncludeHidden_Recursive();
     test_uriList_IncludeHidden_NotRecursive();
     test_uriList_IncludeHidden_Recursive();
+    test_uriList_nodeHasTheRequestedPath();
 }

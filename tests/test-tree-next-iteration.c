@@ -61,7 +61,28 @@ static void test_getNextInTree_FolderIn() {
     VnrFile* vnrfile = tree->data;
     assert_equals("First directory should be dir_one", "dir_one", vnrfile->display_name);
 
-    assert_forward_iteration(tree, ".three.png");
+    tree = assert_forward_iteration(tree, ".three.png");
+    tree = assert_forward_iteration(tree, "two.jpg");
+    tree = assert_forward_iteration(tree, "img.jpg");
+    tree = assert_forward_iteration(tree, "apa.png");
+    tree = assert_forward_iteration(tree, "bepa.png");
+    tree = assert_forward_iteration(tree, "cepa.png");
+
+    GNode *sub_dir_four = g_node_next_sibling(tree);
+    vnrfile = sub_dir_four->data;
+    assert_equals("Directory should be sub_dir_four", "sub_dir_four", vnrfile->display_name);
+
+    GNode *subsub = g_node_first_child(sub_dir_four);
+    vnrfile = subsub->data;
+    assert_equals("Directory should be subsub", "subsub", vnrfile->display_name);
+
+    assert_forward_iteration(subsub, "img0.png");
+
+    GNode *subsub2 = g_node_next_sibling(subsub);
+    vnrfile = subsub2->data;
+    assert_equals("Directory should be subsub2", "subsub2", vnrfile->display_name);
+
+    assert_forward_iteration(subsub2, "img0.png");
 
     free_whole_tree(tree);
 
@@ -91,8 +112,9 @@ static void test_getNextInTree_Iterate() {
 //   ├─ apa.png
 //   ├─ bepa.png
 //   ├─ cepa.png
-//   ├─┬sub_dir_four (1 children)
-//   │ └──subsub (0 children)
+//   ├─┬sub_dir_four (2 children)
+//   │ ├──subsub (0 children)
+//   │ └──subsub2 (0 children)
 //   ├─┬sub_dir_one (3 children)
 //   │ ├─ img0.png
 //   │ ├─ img1.png
@@ -216,8 +238,9 @@ static void test_getPrevInTree_Iterate() {
 //   ├─ apa.png
 //   ├─ bepa.png
 //   ├─ cepa.png
-//   ├─┬sub_dir_four (1 children)
-//   │ └──subsub (0 children)
+//   ├─┬sub_dir_four (2 children)
+//   │ ├──subsub (0 children)
+//   │ └──subsub2 (0 children)
 //   ├─┬sub_dir_one (3 children)
 //   │ ├─ img0.png
 //   │ ├─ img1.png
@@ -336,8 +359,9 @@ static void test_getNextInTree_UriList_Iterate() {
 //   ├─ apa.png
 //   ├─ bepa.png
 //   ├─ cepa.png
-//   ├─┬sub_dir_four (1 children)
-//   │ └──subsub (0 children)
+//   ├─┬sub_dir_four (2 children)
+//   │ ├──subsub (0 children)
+//   │ └──subsub2 (0 children)
 //   ├─┬sub_dir_one (3 children)
 //   │ ├─ img0.png
 //   │ ├─ img1.png
@@ -440,8 +464,9 @@ static void test_getPrevInTree_UriList_Iterate() {
 //   ├─ apa.png
 //   ├─ bepa.png
 //   ├─ cepa.png
-//   ├─┬sub_dir_four (1 children)
-//   │ └──subsub (0 children)
+//   ├─┬sub_dir_four (2 children)
+//   │ ├──subsub (0 children)
+//   │ └──subsub2 (0 children)
 //   ├─┬sub_dir_one (3 children)
 //   │ ├─ img0.png
 //   │ ├─ img1.png

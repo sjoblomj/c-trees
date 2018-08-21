@@ -68,9 +68,6 @@ tree_contains_path(GNode *tree, char *path);
 GList * supported_mime_types;
 
 
-GNode* init() {
-    return g_node_new(NULL);
-}
 
 gint compare_quarks (gconstpointer a, gconstpointer b) {
     GQuark quark = g_quark_from_string ((const gchar *) a);
@@ -95,7 +92,7 @@ static GList * vnr_file_get_supported_mime_types(void) {
         format_list = gdk_pixbuf_get_formats();
 
         for(it = format_list; it != NULL; it = it->next) {
-            mime_types = gdk_pixbuf_format_get_mime_types ((GdkPixbufFormat *) it->data);
+            mime_types = gdk_pixbuf_format_get_mime_types((GdkPixbufFormat *) it->data);
 
             for(i = 0; mime_types[i] != NULL; i++) {
                 supported_mime_types = g_list_prepend(supported_mime_types, g_strdup(mime_types[i]));
@@ -115,21 +112,15 @@ static GList * vnr_file_get_supported_mime_types(void) {
 
 static gboolean vnr_file_is_supported_mime_type(const char *mime_type) {
     GList *result;
-    GQuark quark;
 
-    if (mime_type == NULL) {
-        return FALSE;
-    }
+    GQuark quark = g_quark_from_string(mime_type);
+    supported_mime_types = vnr_file_get_supported_mime_types();
 
-    supported_mime_types = vnr_file_get_supported_mime_types ();
+    result = g_list_find_custom(supported_mime_types,
+                                GINT_TO_POINTER (quark),
+                                (GCompareFunc) compare_quarks);
 
-    quark = g_quark_from_string (mime_type);
-
-    result = g_list_find_custom (supported_mime_types,
-                                 GINT_TO_POINTER (quark),
-                                 (GCompareFunc) compare_quarks);
-
-    return (result != NULL);
+    return result != NULL;
 }
 
 
@@ -267,7 +258,7 @@ vnr_file_set_file_monitor(GNode* tree, struct Preference_Settings* preference_se
 {
     VnrFile* vnrfile = tree->data;
     GFile *file = g_file_new_for_path(vnrfile->path);
-    // It's not a problem if directory monitoring isn't supported,
+    // It's not fatal if directory monitoring isn't supported,
     // so set error to NULL.
     vnrfile->monitor = g_file_monitor(file,
                                       G_FILE_MONITOR_NONE,
@@ -275,7 +266,7 @@ vnr_file_set_file_monitor(GNode* tree, struct Preference_Settings* preference_se
                                       NULL);
     g_object_unref(file);
 
-    if (vnrfile->monitor) {
+    if(vnrfile->monitor) {
 
         // This will be freed when the VnrFile is destroyed.
         struct MonitoringData* monitoring_data = malloc(sizeof(*monitoring_data));
@@ -761,22 +752,28 @@ static GNode* get_prev_or_next_in_tree(GNode *tree, Direction direction) {
     Course course = CONTINUE;
 
     if(G_NODE_IS_ROOT(tree)) {
+        // Is root
         next = get_first_or_last(tree, direction);
 
     } else if(is_leaf(tree) && has_more_siblings_in_direction(tree, direction)) {
+        // Is leaf with more siblings
         next = get_prev_or_next(tree, direction);
 
     } else if(is_leaf(tree) && !has_more_siblings_in_direction(tree, direction)) {
+        // Is leaf with no more siblings
         next = tree->parent;
         course = RETREAT;
 
     } else if(!is_leaf(tree) && has_children(tree)) {
+        // Is directory with children
         next = get_first_or_last(tree, direction);
 
     } else if(!is_leaf(tree) && has_more_siblings_in_direction(tree, direction)) {
+        // Is directory without children but with more siblings
         next = get_prev_or_next(tree, direction);
 
     } else if(!is_leaf(tree) && !has_children(tree) && !has_more_siblings_in_direction(tree, direction)) {
+        // Is directory without children and with no more siblings
         next = tree->parent;
         course = RETREAT;
     }
@@ -854,7 +851,7 @@ void add_node_in_tree(GNode *tree, GNode *node) {
 }
 
 
-gboolean node_has_path(GNode *node, char *path) {
+static gboolean node_has_path(GNode *node, char *path) {
     if(node == NULL || node->data == NULL) {
         return FALSE;
     }
@@ -863,10 +860,7 @@ gboolean node_has_path(GNode *node, char *path) {
 }
 
 
-GNode* recursively_get_child_in_directory(GNode *tree, char* path) {
-    if(tree == NULL) {
-        return NULL;
-    }
+static GNode* recursively_get_child_in_directory(GNode *tree, char* path) {
     if(node_has_path(tree, path)) {
         return tree;
     }
@@ -904,7 +898,7 @@ static gboolean tree_contains_path(GNode *tree, char *path) {
  * (files or directories).
  */
 gboolean has_children(GNode *tree) {
-    return g_node_n_children(tree) > 0;
+    return tree != NULL && g_node_n_children(tree) > 0;
 }
 
 /**
@@ -972,9 +966,7 @@ void get_leaf_position(GNode *tree, int *tree_position, int *total) {
     *tree_position = -1;
     *total = 0;
 
-    if(tree != NULL) {
-        get_number_of_leaves(get_root_node(tree), tree, tree_position, total);
-    }
+    get_number_of_leaves(get_root_node(tree), tree, tree_position, total);
 }
 
 /**
@@ -987,9 +979,7 @@ int get_total_number_of_leaves(GNode *tree) {
     int tree_position = -1;
     int total = 0;
 
-    if(tree != NULL) {
-        get_number_of_leaves(get_root_node(tree), NULL, &tree_position, &total);
-    }
+    get_number_of_leaves(get_root_node(tree), NULL, &tree_position, &total);
     return total;
 }
 

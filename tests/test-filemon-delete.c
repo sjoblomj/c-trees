@@ -22,7 +22,45 @@
 #include "utils.h"
 
 
-static void test_filemonitor_delete_file_in_folder_root() {
+static void test_filemonitor_deleteFileInFolderRoot_noCallbackFunction() {
+    before();
+
+    GError *error = NULL;
+    monitor_test_tree = create_tree_from_single_uri(testdir_path, TRUE, FALSE, NULL, NULL, &error);
+    assert_error_is_null(error);
+    free(error);
+
+    pretty_print_tree(monitor_test_tree, output);
+
+    char* expected = KWHT TESTDIRNAME RESET " (5 children)\n\
+├─ .apa.png\n\
+├─ .depa.gif\n\
+├─ bepa.png\n\
+├─ cepa.jpg\n\
+└─ epa.png\n\
+";
+
+    assert_equals("File monitor before delete in dirroot with no callback ─ Include hidden files: T ─ Recursive: F", expected, output);
+
+
+    remove_file(testdir_path, "/bepa.png");
+
+    char* expected_after = KWHT TESTDIRNAME RESET " (4 children)\n\
+├─ .apa.png\n\
+├─ .depa.gif\n\
+├─ cepa.jpg\n\
+└─ epa.png\n\
+";
+
+    wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
+
+    assert_equals("File monitor after delete in dirroot with no callback ─ Include hidden files: T ─ Recursive: F", expected_after, output);
+    assert_file_system_changes_at_least(0);
+
+    after();
+}
+
+static void test_filemonitor_deleteFileInFolderRoot() {
     before();
 
     monitor_test_tree = single_folder(TRUE, FALSE);
@@ -56,7 +94,7 @@ static void test_filemonitor_delete_file_in_folder_root() {
     after();
 }
 
-static void test_filemonitor_delete_hidden_file_in_folder_root() {
+static void test_filemonitor_deleteHiddenFileInFolderRoot() {
     before();
 
     monitor_test_tree = single_folder(TRUE, FALSE);
@@ -91,7 +129,7 @@ static void test_filemonitor_delete_hidden_file_in_folder_root() {
     after();
 }
 
-static void test_filemonitor_delete_file_in_sub_folder() {
+static void test_filemonitor_deleteFileInSubFolder() {
     before();
 
     monitor_test_tree = single_folder(FALSE, TRUE);
@@ -107,8 +145,9 @@ static void test_filemonitor_delete_file_in_sub_folder() {
   ├─ apa.png\n\
   ├─ bepa.png\n\
   ├─ cepa.png\n\
-  ├─┬" KWHT "sub_dir_four" RESET " (1 children)\n\
-  │ └──" KWHT "subsub" RESET " (0 children)\n\
+  ├─┬" KWHT "sub_dir_four" RESET " (2 children)\n\
+  │ ├──" KWHT "subsub" RESET " (0 children)\n\
+  │ └──" KWHT "subsub2" RESET " (0 children)\n\
   ├─┬" KWHT "sub_dir_one" RESET " (3 children)\n\
   │ ├─ img0.png\n\
   │ ├─ img1.png\n\
@@ -136,8 +175,9 @@ static void test_filemonitor_delete_file_in_sub_folder() {
   ├─ apa.png\n\
   ├─ bepa.png\n\
   ├─ cepa.png\n\
-  ├─┬" KWHT "sub_dir_four" RESET " (1 children)\n\
-  │ └──" KWHT "subsub" RESET " (0 children)\n\
+  ├─┬" KWHT "sub_dir_four" RESET " (2 children)\n\
+  │ ├──" KWHT "subsub" RESET " (0 children)\n\
+  │ └──" KWHT "subsub2" RESET " (0 children)\n\
   ├─┬" KWHT "sub_dir_one" RESET " (2 children)\n\
   │ ├─ img0.png\n\
   │ └─ img2.png\n\
@@ -157,7 +197,7 @@ static void test_filemonitor_delete_file_in_sub_folder() {
     after();
 }
 
-static void test_filemonitor_delete_multiple_files() {
+static void test_filemonitor_deleteMultipleFiles() {
     before();
 
     monitor_test_tree = single_folder(FALSE, TRUE);
@@ -173,8 +213,9 @@ static void test_filemonitor_delete_multiple_files() {
   ├─ apa.png\n\
   ├─ bepa.png\n\
   ├─ cepa.png\n\
-  ├─┬" KWHT "sub_dir_four" RESET " (1 children)\n\
-  │ └──" KWHT "subsub" RESET " (0 children)\n\
+  ├─┬" KWHT "sub_dir_four" RESET " (2 children)\n\
+  │ ├──" KWHT "subsub" RESET " (0 children)\n\
+  │ └──" KWHT "subsub2" RESET " (0 children)\n\
   ├─┬" KWHT "sub_dir_one" RESET " (3 children)\n\
   │ ├─ img0.png\n\
   │ ├─ img1.png\n\
@@ -203,8 +244,9 @@ static void test_filemonitor_delete_multiple_files() {
 └─┬" KWHT "dir_two" RESET " (6 children)\n\
   ├─ apa.png\n\
   ├─ cepa.png\n\
-  ├─┬" KWHT "sub_dir_four" RESET " (1 children)\n\
-  │ └──" KWHT "subsub" RESET " (0 children)\n\
+  ├─┬" KWHT "sub_dir_four" RESET " (2 children)\n\
+  │ ├──" KWHT "subsub" RESET " (0 children)\n\
+  │ └──" KWHT "subsub2" RESET " (0 children)\n\
   ├─┬" KWHT "sub_dir_one" RESET " (2 children)\n\
   │ ├─ img0.png\n\
   │ └─ img2.png\n\
@@ -223,7 +265,7 @@ static void test_filemonitor_delete_multiple_files() {
     after();
 }
 
-static void test_filemonitor_delete_subsub_folder() {
+static void test_filemonitor_deleteSubsubFolder() {
     before();
 
     monitor_test_tree = single_folder(FALSE, TRUE);
@@ -239,8 +281,9 @@ static void test_filemonitor_delete_subsub_folder() {
   ├─ apa.png\n\
   ├─ bepa.png\n\
   ├─ cepa.png\n\
-  ├─┬" KWHT "sub_dir_four" RESET " (1 children)\n\
-  │ └──" KWHT "subsub" RESET " (0 children)\n\
+  ├─┬" KWHT "sub_dir_four" RESET " (2 children)\n\
+  │ ├──" KWHT "subsub" RESET " (0 children)\n\
+  │ └──" KWHT "subsub2" RESET " (0 children)\n\
   ├─┬" KWHT "sub_dir_one" RESET " (3 children)\n\
   │ ├─ img0.png\n\
   │ ├─ img1.png\n\
@@ -268,8 +311,9 @@ static void test_filemonitor_delete_subsub_folder() {
   ├─ apa.png\n\
   ├─ bepa.png\n\
   ├─ cepa.png\n\
-  ├─┬" KWHT "sub_dir_four" RESET " (1 children)\n\
-  │ └──" KWHT "subsub" RESET " (0 children)\n\
+  ├─┬" KWHT "sub_dir_four" RESET " (2 children)\n\
+  │ ├──" KWHT "subsub" RESET " (0 children)\n\
+  │ └──" KWHT "subsub2" RESET " (0 children)\n\
   ├──" KWHT "sub_dir_three" RESET " (0 children)\n\
   └─┬" KWHT "sub_dir_two" RESET " (4 children)\n\
     ├─ img0.png\n\
@@ -288,7 +332,7 @@ static void test_filemonitor_delete_subsub_folder() {
     after();
 }
 
-static void test_filemonitor_delete_sub_folder() {
+static void test_filemonitor_deleteSubFolder() {
     before();
 
     monitor_test_tree = single_folder(FALSE, TRUE);
@@ -304,8 +348,9 @@ static void test_filemonitor_delete_sub_folder() {
   ├─ apa.png\n\
   ├─ bepa.png\n\
   ├─ cepa.png\n\
-  ├─┬" KWHT "sub_dir_four" RESET " (1 children)\n\
-  │ └──" KWHT "subsub" RESET " (0 children)\n\
+  ├─┬" KWHT "sub_dir_four" RESET " (2 children)\n\
+  │ ├──" KWHT "subsub" RESET " (0 children)\n\
+  │ └──" KWHT "subsub2" RESET " (0 children)\n\
   ├─┬" KWHT "sub_dir_one" RESET " (3 children)\n\
   │ ├─ img0.png\n\
   │ ├─ img1.png\n\
@@ -340,7 +385,7 @@ static void test_filemonitor_delete_sub_folder() {
     after();
 }
 
-static void test_filemonitor_delete_root_folder() {
+static void test_filemonitor_deleteRootFolder() {
     before();
 
     monitor_test_tree = single_folder(FALSE, TRUE);
@@ -356,8 +401,9 @@ static void test_filemonitor_delete_root_folder() {
   ├─ apa.png\n\
   ├─ bepa.png\n\
   ├─ cepa.png\n\
-  ├─┬" KWHT "sub_dir_four" RESET " (1 children)\n\
-  │ └──" KWHT "subsub" RESET " (0 children)\n\
+  ├─┬" KWHT "sub_dir_four" RESET " (2 children)\n\
+  │ ├──" KWHT "subsub" RESET " (0 children)\n\
+  │ └──" KWHT "subsub2" RESET " (0 children)\n\
   ├─┬" KWHT "sub_dir_one" RESET " (3 children)\n\
   │ ├─ img0.png\n\
   │ ├─ img1.png\n\
@@ -387,13 +433,14 @@ static void test_filemonitor_delete_root_folder() {
 
 
 static gboolean file_monitor_tests(gpointer data) {
-    test_filemonitor_delete_file_in_folder_root();
-    test_filemonitor_delete_hidden_file_in_folder_root();
-    test_filemonitor_delete_file_in_sub_folder();
-    test_filemonitor_delete_multiple_files();
-    test_filemonitor_delete_subsub_folder();
-    test_filemonitor_delete_sub_folder();
-    test_filemonitor_delete_root_folder();
+    test_filemonitor_deleteFileInFolderRoot_noCallbackFunction();
+    test_filemonitor_deleteFileInFolderRoot();
+    test_filemonitor_deleteHiddenFileInFolderRoot();
+    test_filemonitor_deleteFileInSubFolder();
+    test_filemonitor_deleteMultipleFiles();
+    test_filemonitor_deleteSubsubFolder();
+    test_filemonitor_deleteSubFolder();
+    test_filemonitor_deleteRootFolder();
 
     g_main_loop_quit((GMainLoop*)data);
     return FALSE;

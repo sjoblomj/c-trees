@@ -72,15 +72,20 @@ void file_system_changed_callback(gboolean deleted, char *path, GNode *changed_n
 
 
 
-GNode* single_file(gboolean include_hidden, gboolean recursive) {
+GNode* open_single_file(char* path, gboolean include_hidden, gboolean recursive) {
     GNode *tree = NULL;
     GError *error = NULL;
-    char *path = append_strings(testdir_path, "/bepa.png");
 
     tree = create_tree_from_single_uri(path, include_hidden, recursive, file_system_changed_callback, expected_callback_data, &error);
 
     assert_error_is_null(error);
     free(error);
+    return tree;
+}
+
+GNode* single_file(gboolean include_hidden, gboolean recursive) {
+    char *path = append_strings(testdir_path, "/bepa.png");
+    GNode *tree = open_single_file(path, include_hidden, recursive);
     free(path);
     return tree;
 }
@@ -285,6 +290,7 @@ void create_file_structure() {
     create_dir (testdir_path, "/dir_two/sub_dir_three");
     create_dir (testdir_path, "/dir_two/sub_dir_four");
     create_dir (testdir_path, "/dir_two/sub_dir_four/subsub");
+    create_dir (testdir_path, "/dir_two/sub_dir_four/subsub2");
 }
 
 void remove_file(char *dir, char *filename) {

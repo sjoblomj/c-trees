@@ -22,6 +22,29 @@
 #include "utils.h"
 
 
+static void test_singleFile_NonImageFile() {
+    before();
+
+    char *path = append_strings(testdir_path, "/test.txt");
+    GError *error = NULL;
+
+    assert_tree_is_null("Non image ─ Include hidden files: F ─ Recursive: F", create_tree_from_single_uri(path, FALSE, FALSE, NULL, NULL, &error));
+    assert_error_is_null(error);
+    g_clear_error(&error);
+    assert_tree_is_null("Non image ─ Include hidden files: F ─ Recursive: T", create_tree_from_single_uri(path, FALSE, TRUE,  NULL, NULL, &error));
+    assert_error_is_null(error);
+    g_clear_error(&error);
+    assert_tree_is_null("Non image ─ Include hidden files: T ─ Recursive: F", create_tree_from_single_uri(path, TRUE,  FALSE, NULL, NULL, &error));
+    assert_error_is_null(error);
+    g_clear_error(&error);
+    assert_tree_is_null("Non image ─ Include hidden files: T ─ Recursive: T", create_tree_from_single_uri(path, TRUE,  TRUE,  NULL, NULL, &error));
+    assert_error_is_null(error);
+    g_clear_error(&error);
+
+    free(path);
+    after();
+}
+
 static void test_singleFile_NonExistentFile() {
     before();
 
@@ -88,8 +111,9 @@ static void test_singleFile_DontIncludeHidden_Recursive() {
   ├─ apa.png\n\
   ├─ bepa.png\n\
   ├─ cepa.png\n\
-  ├─┬" KWHT "sub_dir_four" RESET " (1 children)\n\
-  │ └──" KWHT "subsub" RESET " (0 children)\n\
+  ├─┬" KWHT "sub_dir_four" RESET " (2 children)\n\
+  │ ├──" KWHT "subsub" RESET " (0 children)\n\
+  │ └──" KWHT "subsub2" RESET " (0 children)\n\
   ├─┬" KWHT "sub_dir_one" RESET " (3 children)\n\
   │ ├─ img0.png\n\
   │ ├─ img1.png\n\
@@ -147,8 +171,9 @@ static void test_singleFile_IncludeHidden_Recursive() {
   ├─ apa.png\n\
   ├─ bepa.png\n\
   ├─ cepa.png\n\
-  ├─┬" KWHT "sub_dir_four" RESET " (1 children)\n\
-  │ └──" KWHT "subsub" RESET " (0 children)\n\
+  ├─┬" KWHT "sub_dir_four" RESET " (2 children)\n\
+  │ ├──" KWHT "subsub" RESET " (0 children)\n\
+  │ └──" KWHT "subsub2" RESET " (0 children)\n\
   ├─┬" KWHT "sub_dir_one" RESET " (3 children)\n\
   │ ├─ img0.png\n\
   │ ├─ img1.png\n\
@@ -170,11 +195,63 @@ static void test_singleFile_IncludeHidden_Recursive() {
 }
 
 
+static void assert_node_has_path(char* path, gboolean include_hidden, gboolean recursive) {
+    GNode *tree = open_single_file(path, include_hidden, recursive);
+    assert_equals("Node returned is the one requested ─ Include hidden files: T ─ Recursive: T", path, ((VnrFile*) (tree->data))->path);
+    free_whole_tree(tree);
+    free(path);
+}
+
+static void test_singleFile_nodeHasTheRequestedPath() {
+    before();
+    char *path;
+
+
+    path = get_absolute_path(testdir_path, "/cepa.jpg");
+    assert_node_has_path(path, FALSE, FALSE);
+
+    path = get_absolute_path(testdir_path, "/epa.png");
+    assert_node_has_path(path, FALSE, FALSE);
+
+
+    path = get_absolute_path(testdir_path, "/cepa.jpg");
+    assert_node_has_path(path, FALSE, TRUE);
+
+    path = get_absolute_path(testdir_path, "/epa.png");
+    assert_node_has_path(path, FALSE, TRUE);
+
+
+    path = get_absolute_path(testdir_path, "/.apa.png");
+    assert_node_has_path(path, TRUE, FALSE);
+
+    path = get_absolute_path(testdir_path, "/cepa.jpg");
+    assert_node_has_path(path, TRUE, FALSE);
+
+    path = get_absolute_path(testdir_path, "/epa.png");
+    assert_node_has_path(path, TRUE, FALSE);
+
+
+    path = get_absolute_path(testdir_path, "/.apa.png");
+    assert_node_has_path(path, TRUE, TRUE);
+
+    path = get_absolute_path(testdir_path, "/cepa.jpg");
+    assert_node_has_path(path, TRUE, TRUE);
+
+    path = get_absolute_path(testdir_path, "/epa.png");
+    assert_node_has_path(path, TRUE, TRUE);
+
+
+    after();
+}
+
+
 
 void test_tree_singlefile() {
+    test_singleFile_NonImageFile();
     test_singleFile_NonExistentFile();
     test_singleFile_DontIncludeHidden_NotRecursive();
     test_singleFile_DontIncludeHidden_Recursive();
     test_singleFile_IncludeHidden_NotRecursive();
     test_singleFile_IncludeHidden_Recursive();
+    test_singleFile_nodeHasTheRequestedPath();
 }

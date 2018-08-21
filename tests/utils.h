@@ -53,6 +53,7 @@ char* append_strings(char* base_str, char* append_str);
 GSList* add_path_to_list(GSList *list, char *parent_dir, char *filename);
 char* get_absolute_path(char *dir, char *filename);
 
+GNode* open_single_file(char* path, gboolean include_hidden, gboolean recursive);
 GNode* single_file(gboolean include_hidden, gboolean recursive);
 GNode* single_folder(gboolean include_hidden, gboolean recursive);
 GNode* uri_list(gboolean include_hidden, gboolean recursive);

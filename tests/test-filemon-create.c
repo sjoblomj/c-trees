@@ -22,7 +22,44 @@
 #include "utils.h"
 
 
-static void test_filemonitor_create_file_in_folder_nonrecursive() {
+static void test_filemonitor_createFileInFolder_noCallbackFunction() {
+    before();
+
+    GError *error = NULL;
+    monitor_test_tree = create_tree_from_single_uri(testdir_path, FALSE, FALSE, NULL, NULL, &error);
+    assert_error_is_null(error);
+    free(error);
+
+
+    pretty_print_tree(monitor_test_tree, output);
+
+    char* expected = KWHT TESTDIRNAME RESET " (3 children)\n\
+├─ bepa.png\n\
+├─ cepa.jpg\n\
+└─ epa.png\n\
+";
+
+    assert_equals("File monitor before create in root with no callback ─ Include hidden files: F ─ Recursive: F", expected, output);
+
+
+    create_file(testdir_path, "/fepa.jpg");
+
+    char* expected_after = KWHT TESTDIRNAME RESET " (4 children)\n\
+├─ bepa.png\n\
+├─ cepa.jpg\n\
+├─ epa.png\n\
+└─ fepa.jpg\n\
+";
+
+    wait_until_tree_is_as_expected(monitor_test_tree, expected_after);
+
+    assert_equals("File monitor after create in root with no callback ─ Include hidden files: F ─ Recursive: F", expected_after, output);
+    assert_file_system_changes_at_least(0);
+
+    after();
+}
+
+static void test_filemonitor_createFileInFolder_nonRecursive() {
     before();
 
     monitor_test_tree = single_folder(FALSE, FALSE);
@@ -54,7 +91,7 @@ static void test_filemonitor_create_file_in_folder_nonrecursive() {
     after();
 }
 
-static void test_filemonitor_create_file_in_folder_recursive() {
+static void test_filemonitor_createFileInFolder_recursive() {
     before();
 
     monitor_test_tree = single_folder(FALSE, TRUE);
@@ -70,8 +107,9 @@ static void test_filemonitor_create_file_in_folder_recursive() {
   ├─ apa.png\n\
   ├─ bepa.png\n\
   ├─ cepa.png\n\
-  ├─┬" KWHT "sub_dir_four" RESET " (1 children)\n\
-  │ └──" KWHT "subsub" RESET " (0 children)\n\
+  ├─┬" KWHT "sub_dir_four" RESET " (2 children)\n\
+  │ ├──" KWHT "subsub" RESET " (0 children)\n\
+  │ └──" KWHT "subsub2" RESET " (0 children)\n\
   ├─┬" KWHT "sub_dir_one" RESET " (3 children)\n\
   │ ├─ img0.png\n\
   │ ├─ img1.png\n\
@@ -99,8 +137,9 @@ static void test_filemonitor_create_file_in_folder_recursive() {
   ├─ apa.png\n\
   ├─ bepa.png\n\
   ├─ cepa.png\n\
-  ├─┬" KWHT "sub_dir_four" RESET " (1 children)\n\
-  │ └──" KWHT "subsub" RESET " (0 children)\n\
+  ├─┬" KWHT "sub_dir_four" RESET " (2 children)\n\
+  │ ├──" KWHT "subsub" RESET " (0 children)\n\
+  │ └──" KWHT "subsub2" RESET " (0 children)\n\
   ├─┬" KWHT "sub_dir_one" RESET " (4 children)\n\
   │ ├─ img0.png\n\
   │ ├─ img1.png\n\
@@ -122,7 +161,7 @@ static void test_filemonitor_create_file_in_folder_recursive() {
     after();
 }
 
-static void test_filemonitor_create_hidden_file_in_folder_nonrecursive() {
+static void test_filemonitor_createHiddenFileInFolder_nonRecursive() {
     before();
 
     monitor_test_tree = single_folder(FALSE, FALSE);
@@ -154,7 +193,7 @@ static void test_filemonitor_create_hidden_file_in_folder_nonrecursive() {
     after();
 }
 
-static void test_filemonitor_create_multiple_files_in_folder_recursive() {
+static void test_filemonitor_createMultipleFilesInFolder_recursive() {
     before();
 
     monitor_test_tree = single_folder(FALSE, TRUE);
@@ -170,8 +209,9 @@ static void test_filemonitor_create_multiple_files_in_folder_recursive() {
   ├─ apa.png\n\
   ├─ bepa.png\n\
   ├─ cepa.png\n\
-  ├─┬" KWHT "sub_dir_four" RESET " (1 children)\n\
-  │ └──" KWHT "subsub" RESET " (0 children)\n\
+  ├─┬" KWHT "sub_dir_four" RESET " (2 children)\n\
+  │ ├──" KWHT "subsub" RESET " (0 children)\n\
+  │ └──" KWHT "subsub2" RESET " (0 children)\n\
   ├─┬" KWHT "sub_dir_one" RESET " (3 children)\n\
   │ ├─ img0.png\n\
   │ ├─ img1.png\n\
@@ -204,9 +244,10 @@ static void test_filemonitor_create_multiple_files_in_folder_recursive() {
   ├─ bepa.png\n\
   ├─ cepa.png\n\
   ├─ depa.png\n\
-  ├─┬" KWHT "sub_dir_four" RESET " (1 children)\n\
-  │ └─┬" KWHT "subsub" RESET " (1 children)\n\
-  │   └─ img.png\n\
+  ├─┬" KWHT "sub_dir_four" RESET " (2 children)\n\
+  │ ├─┬" KWHT "subsub" RESET " (1 children)\n\
+  │ │ └─ img.png\n\
+  │ └──" KWHT "subsub2" RESET " (0 children)\n\
   ├─┬" KWHT "sub_dir_one" RESET " (4 children)\n\
   │ ├─ img0.png\n\
   │ ├─ img1.png\n\
@@ -228,7 +269,7 @@ static void test_filemonitor_create_multiple_files_in_folder_recursive() {
     after();
 }
 
-static void test_filemonitor_create_file_in_folder_sorted() {
+static void test_filemonitor_createFileInFolder_sorted() {
     before();
 
     monitor_test_tree = single_folder(FALSE, FALSE);
@@ -261,7 +302,7 @@ static void test_filemonitor_create_file_in_folder_sorted() {
     after();
 }
 
-static void test_filemonitor_create_folder_in_folder_sorted() {
+static void test_filemonitor_createFolderInFolder_sorted() {
     before();
 
     monitor_test_tree = single_folder(FALSE, TRUE);
@@ -277,8 +318,9 @@ static void test_filemonitor_create_folder_in_folder_sorted() {
   ├─ apa.png\n\
   ├─ bepa.png\n\
   ├─ cepa.png\n\
-  ├─┬" KWHT "sub_dir_four" RESET " (1 children)\n\
-  │ └──" KWHT "subsub" RESET " (0 children)\n\
+  ├─┬" KWHT "sub_dir_four" RESET " (2 children)\n\
+  │ ├──" KWHT "subsub" RESET " (0 children)\n\
+  │ └──" KWHT "subsub2" RESET " (0 children)\n\
   ├─┬" KWHT "sub_dir_one" RESET " (3 children)\n\
   │ ├─ img0.png\n\
   │ ├─ img1.png\n\
@@ -307,8 +349,9 @@ static void test_filemonitor_create_folder_in_folder_sorted() {
   ├─ apa.png\n\
   ├─ bepa.png\n\
   ├─ cepa.png\n\
-  ├─┬" KWHT "sub_dir_four" RESET " (1 children)\n\
-  │ └──" KWHT "subsub" RESET " (0 children)\n\
+  ├─┬" KWHT "sub_dir_four" RESET " (2 children)\n\
+  │ ├──" KWHT "subsub" RESET " (0 children)\n\
+  │ └──" KWHT "subsub2" RESET " (0 children)\n\
   ├─┬" KWHT "sub_dir_one" RESET " (3 children)\n\
   │ ├─ img0.png\n\
   │ ├─ img1.png\n\
@@ -330,7 +373,7 @@ static void test_filemonitor_create_folder_in_folder_sorted() {
 }
 
 
-static void test_filemonitor_recursive_create_dir_then_create_files_in_it() {
+static void test_filemonitor_createDirThenCreateFilesInIt_recursive() {
     before();
 
     monitor_test_tree = single_folder(FALSE, TRUE);
@@ -346,8 +389,9 @@ static void test_filemonitor_recursive_create_dir_then_create_files_in_it() {
   ├─ apa.png\n\
   ├─ bepa.png\n\
   ├─ cepa.png\n\
-  ├─┬" KWHT "sub_dir_four" RESET " (1 children)\n\
-  │ └──" KWHT "subsub" RESET " (0 children)\n\
+  ├─┬" KWHT "sub_dir_four" RESET " (2 children)\n\
+  │ ├──" KWHT "subsub" RESET " (0 children)\n\
+  │ └──" KWHT "subsub2" RESET " (0 children)\n\
   ├─┬" KWHT "sub_dir_one" RESET " (3 children)\n\
   │ ├─ img0.png\n\
   │ ├─ img1.png\n\
@@ -377,8 +421,9 @@ static void test_filemonitor_recursive_create_dir_then_create_files_in_it() {
 │ ├─ apa.png\n\
 │ ├─ bepa.png\n\
 │ ├─ cepa.png\n\
-│ ├─┬" KWHT "sub_dir_four" RESET " (1 children)\n\
-│ │ └──" KWHT "subsub" RESET " (0 children)\n\
+│ ├─┬" KWHT "sub_dir_four" RESET " (2 children)\n\
+│ │ ├──" KWHT "subsub" RESET " (0 children)\n\
+│ │ └──" KWHT "subsub2" RESET " (0 children)\n\
 │ ├─┬" KWHT "sub_dir_one" RESET " (3 children)\n\
 │ │ ├─ img0.png\n\
 │ │ ├─ img1.png\n\
@@ -405,7 +450,7 @@ static void test_filemonitor_recursive_create_dir_then_create_files_in_it() {
 }
 
 
-static void test_filemonitor_nonrecursive_create_dir_then_create_files_in_it() {
+static void test_filemonitor_createDirThenCreateFilesInIt_nonRecursive() {
     before();
 
     monitor_test_tree = single_folder(FALSE, FALSE);
@@ -441,14 +486,15 @@ static void test_filemonitor_nonrecursive_create_dir_then_create_files_in_it() {
 
 
 static gboolean file_monitor_tests(gpointer data) {
-    test_filemonitor_create_file_in_folder_nonrecursive();
-    test_filemonitor_create_file_in_folder_recursive();
-    test_filemonitor_create_hidden_file_in_folder_nonrecursive();
-    test_filemonitor_create_multiple_files_in_folder_recursive();
-    test_filemonitor_create_file_in_folder_sorted();
-    test_filemonitor_create_folder_in_folder_sorted();
-    test_filemonitor_recursive_create_dir_then_create_files_in_it();
-    test_filemonitor_nonrecursive_create_dir_then_create_files_in_it();
+    test_filemonitor_createFileInFolder_noCallbackFunction();
+    test_filemonitor_createFileInFolder_nonRecursive();
+    test_filemonitor_createFileInFolder_recursive();
+    test_filemonitor_createHiddenFileInFolder_nonRecursive();
+    test_filemonitor_createMultipleFilesInFolder_recursive();
+    test_filemonitor_createFileInFolder_sorted();
+    test_filemonitor_createFolderInFolder_sorted();
+    test_filemonitor_createDirThenCreateFilesInIt_recursive();
+    test_filemonitor_createDirThenCreateFilesInIt_nonRecursive();
 
     g_main_loop_quit((GMainLoop*)data);
     return FALSE;

@@ -22,7 +22,7 @@
 #include "utils.h"
 
 
-static void test_filemonitor_move_file_in_same_dir() {
+static void test_filemonitor_moveFileInSameDir() {
     before();
 
     monitor_test_tree = single_folder(FALSE, TRUE);
@@ -38,8 +38,9 @@ static void test_filemonitor_move_file_in_same_dir() {
   ├─ apa.png\n\
   ├─ bepa.png\n\
   ├─ cepa.png\n\
-  ├─┬" KWHT "sub_dir_four" RESET " (1 children)\n\
-  │ └──" KWHT "subsub" RESET " (0 children)\n\
+  ├─┬" KWHT "sub_dir_four" RESET " (2 children)\n\
+  │ ├──" KWHT "subsub" RESET " (0 children)\n\
+  │ └──" KWHT "subsub2" RESET " (0 children)\n\
   ├─┬" KWHT "sub_dir_one" RESET " (3 children)\n\
   │ ├─ img0.png\n\
   │ ├─ img1.png\n\
@@ -74,8 +75,9 @@ static void test_filemonitor_move_file_in_same_dir() {
   ├─ apa.png\n\
   ├─ bepa.png\n\
   ├─ cepa.png\n\
-  ├─┬" KWHT "sub_dir_four" RESET " (1 children)\n\
-  │ └──" KWHT "subsub" RESET " (0 children)\n\
+  ├─┬" KWHT "sub_dir_four" RESET " (2 children)\n\
+  │ ├──" KWHT "subsub" RESET " (0 children)\n\
+  │ └──" KWHT "subsub2" RESET " (0 children)\n\
   ├─┬" KWHT "sub_dir_one" RESET " (3 children)\n\
   │ ├─ img0.png\n\
   │ ├─ img1.png\n\
@@ -98,7 +100,7 @@ static void test_filemonitor_move_file_in_same_dir() {
     after();
 }
 
-static void test_filemonitor_move_file_to_subdir() {
+static void test_filemonitor_moveFileToSubdir() {
     before();
 
     monitor_test_tree = single_folder(FALSE, TRUE);
@@ -114,8 +116,9 @@ static void test_filemonitor_move_file_to_subdir() {
   ├─ apa.png\n\
   ├─ bepa.png\n\
   ├─ cepa.png\n\
-  ├─┬" KWHT "sub_dir_four" RESET " (1 children)\n\
-  │ └──" KWHT "subsub" RESET " (0 children)\n\
+  ├─┬" KWHT "sub_dir_four" RESET " (2 children)\n\
+  │ ├──" KWHT "subsub" RESET " (0 children)\n\
+  │ └──" KWHT "subsub2" RESET " (0 children)\n\
   ├─┬" KWHT "sub_dir_one" RESET " (3 children)\n\
   │ ├─ img0.png\n\
   │ ├─ img1.png\n\
@@ -149,8 +152,9 @@ static void test_filemonitor_move_file_to_subdir() {
   ├─ apa.png\n\
   ├─ bepa.png\n\
   ├─ cepa.png\n\
-  ├─┬" KWHT "sub_dir_four" RESET " (1 children)\n\
-  │ └──" KWHT "subsub" RESET " (0 children)\n\
+  ├─┬" KWHT "sub_dir_four" RESET " (2 children)\n\
+  │ ├──" KWHT "subsub" RESET " (0 children)\n\
+  │ └──" KWHT "subsub2" RESET " (0 children)\n\
   ├─┬" KWHT "sub_dir_one" RESET " (3 children)\n\
   │ ├─ img0.png\n\
   │ ├─ img1.png\n\
@@ -173,7 +177,7 @@ static void test_filemonitor_move_file_to_subdir() {
     after();
 }
 
-static void test_filemonitor_move_file_to_parent_dir() {
+static void test_filemonitor_moveFileToParentDir() {
     before();
 
     monitor_test_tree = single_folder(FALSE, TRUE);
@@ -189,8 +193,9 @@ static void test_filemonitor_move_file_to_parent_dir() {
   ├─ apa.png\n\
   ├─ bepa.png\n\
   ├─ cepa.png\n\
-  ├─┬" KWHT "sub_dir_four" RESET " (1 children)\n\
-  │ └──" KWHT "subsub" RESET " (0 children)\n\
+  ├─┬" KWHT "sub_dir_four" RESET " (2 children)\n\
+  │ ├──" KWHT "subsub" RESET " (0 children)\n\
+  │ └──" KWHT "subsub2" RESET " (0 children)\n\
   ├─┬" KWHT "sub_dir_one" RESET " (3 children)\n\
   │ ├─ img0.png\n\
   │ ├─ img1.png\n\
@@ -224,8 +229,9 @@ static void test_filemonitor_move_file_to_parent_dir() {
 └─┬" KWHT "dir_two" RESET " (6 children)\n\
   ├─ bepa.png\n\
   ├─ cepa.png\n\
-  ├─┬" KWHT "sub_dir_four" RESET " (1 children)\n\
-  │ └──" KWHT "subsub" RESET " (0 children)\n\
+  ├─┬" KWHT "sub_dir_four" RESET " (2 children)\n\
+  │ ├──" KWHT "subsub" RESET " (0 children)\n\
+  │ └──" KWHT "subsub2" RESET " (0 children)\n\
   ├─┬" KWHT "sub_dir_one" RESET " (3 children)\n\
   │ ├─ img0.png\n\
   │ ├─ img1.png\n\
@@ -248,7 +254,7 @@ static void test_filemonitor_move_file_to_parent_dir() {
     after();
 }
 
-static void test_filemonitor_move_dir_in_same_dir() {
+static void test_filemonitor_moveDirInSameDir() {
     before();
 
     monitor_test_tree = single_folder(FALSE, TRUE);
@@ -264,8 +270,9 @@ static void test_filemonitor_move_dir_in_same_dir() {
   ├─ apa.png\n\
   ├─ bepa.png\n\
   ├─ cepa.png\n\
-  ├─┬" KWHT "sub_dir_four" RESET " (1 children)\n\
-  │ └──" KWHT "subsub" RESET " (0 children)\n\
+  ├─┬" KWHT "sub_dir_four" RESET " (2 children)\n\
+  │ ├──" KWHT "subsub" RESET " (0 children)\n\
+  │ └──" KWHT "subsub2" RESET " (0 children)\n\
   ├─┬" KWHT "sub_dir_one" RESET " (3 children)\n\
   │ ├─ img0.png\n\
   │ ├─ img1.png\n\
@@ -299,8 +306,9 @@ static void test_filemonitor_move_dir_in_same_dir() {
   ├─ apa.png\n\
   ├─ bepa.png\n\
   ├─ cepa.png\n\
-  ├─┬" KWHT "sub_dir_four" RESET " (1 children)\n\
-  │ └──" KWHT "subsub" RESET " (0 children)\n\
+  ├─┬" KWHT "sub_dir_four" RESET " (2 children)\n\
+  │ ├──" KWHT "subsub" RESET " (0 children)\n\
+  │ └──" KWHT "subsub2" RESET " (0 children)\n\
   ├─┬" KWHT "sub_dir_one" RESET " (3 children)\n\
   │ ├─ img0.png\n\
   │ ├─ img1.png\n\
@@ -326,10 +334,10 @@ static void test_filemonitor_move_dir_in_same_dir() {
 
 
 static gboolean file_monitor_tests(gpointer data) {
-    test_filemonitor_move_file_in_same_dir();
-    test_filemonitor_move_file_to_subdir();
-    test_filemonitor_move_file_to_parent_dir();
-    test_filemonitor_move_dir_in_same_dir();
+    test_filemonitor_moveFileInSameDir();
+    test_filemonitor_moveFileToSubdir();
+    test_filemonitor_moveFileToParentDir();
+    test_filemonitor_moveDirInSameDir();
 
     g_main_loop_quit((GMainLoop*)data);
     return FALSE;

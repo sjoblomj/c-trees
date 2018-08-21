@@ -70,8 +70,8 @@ static void print_node(GNode *node, gpointer data) {
 static void print_tree(GNode *tree, char* tree_structure_base) {
 
     char* tree_structure_end = "";
-    if (!G_NODE_IS_ROOT(tree)) {
-        if (has_more_siblings(tree)) {
+    if(!G_NODE_IS_ROOT(tree)) {
+        if(has_more_siblings(tree)) {
             tree_structure_end = has_children(tree) ? "├─┬" : "├──";
         } else {
             tree_structure_end = has_children(tree) ? "└─┬" : "└──";

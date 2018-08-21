@@ -22,7 +22,7 @@
 #include "utils.h"
 
 
-static void test_filemonitor_uriList_create_file_in_root() {
+static void test_filemonitor_uriList_createFileInRoot() {
     before();
 
     monitor_test_tree = uri_list(FALSE, FALSE);
@@ -60,7 +60,7 @@ static void test_filemonitor_uriList_create_file_in_root() {
 }
 
 
-static void test_filemonitor_uriList_create_dir_in_root() {
+static void test_filemonitor_uriList_createDirInRoot() {
     before();
 
     monitor_test_tree = uri_list(FALSE, FALSE);
@@ -100,7 +100,7 @@ static void test_filemonitor_uriList_create_dir_in_root() {
     after();
 }
 
-static void test_filemonitor_uriList_create_file_in_watched_dir() {
+static void test_filemonitor_uriList_createFileInWatchedDir() {
     before();
 
     monitor_test_tree = uri_list(FALSE, FALSE);
@@ -139,7 +139,7 @@ static void test_filemonitor_uriList_create_file_in_watched_dir() {
     after();
 }
 
-static void test_filemonitor_uriList_create_file_in_nonwatched_dir() {
+static void test_filemonitor_uriList_createFileInNonwatchedDir() {
     before();
 
     monitor_test_tree = uri_list(FALSE, FALSE);
@@ -177,7 +177,7 @@ static void test_filemonitor_uriList_create_file_in_nonwatched_dir() {
     after();
 }
 
-static void test_filemonitor_uriList_create_file_in_empty_root() {
+static void test_filemonitor_uriList_createFileInEmptyRoot() {
     before();
 
     monitor_test_tree = uri_list_with_no_entries(FALSE, FALSE);
@@ -206,11 +206,11 @@ static void test_filemonitor_uriList_create_file_in_empty_root() {
 
 
 static gboolean file_monitor_tests(gpointer data) {
-    test_filemonitor_uriList_create_file_in_root();
-    test_filemonitor_uriList_create_dir_in_root();
-    test_filemonitor_uriList_create_file_in_watched_dir();
-    test_filemonitor_uriList_create_file_in_nonwatched_dir();
-    test_filemonitor_uriList_create_file_in_empty_root();
+    test_filemonitor_uriList_createFileInRoot();
+    test_filemonitor_uriList_createDirInRoot();
+    test_filemonitor_uriList_createFileInWatchedDir();
+    test_filemonitor_uriList_createFileInNonwatchedDir();
+    test_filemonitor_uriList_createFileInEmptyRoot();
 
     g_main_loop_quit((GMainLoop*)data);
     return FALSE;

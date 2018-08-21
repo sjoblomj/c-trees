@@ -49,8 +49,9 @@ static void test_getChildInDirectory_FindFromRoot_FileExists() {
 //   ├─ apa.png
 //   ├─ bepa.png
 //   ├─ cepa.png
-//   ├─┬sub_dir_four (1 children)
-//   │ └──subsub (0 children)
+//   ├─┬sub_dir_four (2 children)
+//   │ ├──subsub (0 children)
+//   │ └──subsub2 (0 children)
 //   ├─┬sub_dir_one (3 children)
 //   │ ├─ img0.png
 //   │ ├─ img1.png
@@ -98,8 +99,9 @@ static void test_getChildInDirectory_FindFromFileAndDir_FileExists() {
 //   ├─ apa.png
 //   ├─ bepa.png
 //   ├─ cepa.png
-//   ├─┬sub_dir_four (1 children)
-//   │ └──subsub (0 children)
+//   ├─┬sub_dir_four (2 children)
+//   │ ├──subsub (0 children)
+//   │ └──subsub2 (0 children)
 //   ├─┬sub_dir_one (3 children)
 //   │ ├─ img0.png
 //   │ ├─ img1.png
@@ -154,8 +156,9 @@ static void test_getChildInDirectory_FindAbove_FileExists() {
 //   ├─ apa.png
 //   ├─ bepa.png
 //   ├─ cepa.png
-//   ├─┬sub_dir_four (1 children)
-//   │ └──subsub (0 children)
+//   ├─┬sub_dir_four (2 children)
+//   │ ├──subsub (0 children)
+//   │ └──subsub2 (0 children)
 //   ├─┬sub_dir_one (3 children)
 //   │ ├─ img0.png
 //   │ ├─ img1.png
@@ -204,8 +207,9 @@ static void test_getChildInDirectory_FileDoesNotExist() {
 //   ├─ apa.png
 //   ├─ bepa.png
 //   ├─ cepa.png
-//   ├─┬sub_dir_four (1 children)
-//   │ └──subsub (0 children)
+//   ├─┬sub_dir_four (2 children)
+//   │ ├──subsub (0 children)
+//   │ └──subsub2 (0 children)
 //   ├─┬sub_dir_one (3 children)
 //   │ ├─ img0.png
 //   │ ├─ img1.png
@@ -254,8 +258,9 @@ static void test_getChildInDirectory_SearchFromSubDirectoryIsEmpty() {
 //   ├─ apa.png
 //   ├─ bepa.png
 //   ├─ cepa.png
-//   ├─┬sub_dir_four (1 children)
-//   │ └──subsub (0 children)
+//   ├─┬sub_dir_four (2 children)
+//   │ ├──subsub (0 children)
+//   │ └──subsub2 (0 children)
 //   ├─┬sub_dir_one (3 children)
 //   │ ├─ img0.png
 //   │ ├─ img1.png
@@ -310,8 +315,9 @@ static void test_getChildInDirectory_DirectoryIsEmpty() {
 //   ├─ apa.png
 //   ├─ bepa.png
 //   ├─ cepa.png
-//   ├─┬sub_dir_four (1 children)
-//   │ └──subsub (0 children)
+//   ├─┬sub_dir_four (2 children)
+//   │ ├──subsub (0 children)
+//   │ └──subsub2 (0 children)
 //   ├─┬sub_dir_one (3 children)
 //   │ ├─ img0.png
 //   │ ├─ img1.png
@@ -366,8 +372,9 @@ static void test_getChildInDirectory_FindRoot() {
 //   ├─ apa.png
 //   ├─ bepa.png
 //   ├─ cepa.png
-//   ├─┬sub_dir_four (1 children)
-//   │ └──subsub (0 children)
+//   ├─┬sub_dir_four (2 children)
+//   │ ├──subsub (0 children)
+//   │ └──subsub2 (0 children)
 //   ├─┬sub_dir_one (3 children)
 //   │ ├─ img0.png
 //   │ ├─ img1.png

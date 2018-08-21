@@ -22,7 +22,7 @@
 #include "utils.h"
 
 
-static void test_filemonitor_uriList_delete_file_under_root() {
+static void test_filemonitor_uriList_deleteFileUnderRoot() {
     before();
 
     monitor_test_tree = uri_list(FALSE, FALSE);
@@ -60,7 +60,7 @@ static void test_filemonitor_uriList_delete_file_under_root() {
     after();
 }
 
-static void test_filemonitor_uriList_delete_nonwatched_file_under_root() {
+static void test_filemonitor_uriList_deleteNonWatchedFileUnderRoot() {
     before();
 
     monitor_test_tree = uri_list(FALSE, FALSE);
@@ -98,7 +98,7 @@ static void test_filemonitor_uriList_delete_nonwatched_file_under_root() {
     after();
 }
 
-static void test_filemonitor_uriList_delete_nonwatched_file_under_empty_root() {
+static void test_filemonitor_uriList_deleteNonWatchedFileUnderEmptyRoot() {
     before();
 
     monitor_test_tree = uri_list_with_no_entries(FALSE, FALSE);
@@ -124,7 +124,7 @@ static void test_filemonitor_uriList_delete_nonwatched_file_under_empty_root() {
     after();
 }
 
-static void test_filemonitor_uriList_delete_file_under_watched_dir() {
+static void test_filemonitor_uriList_deleteFileUnderWatchedDir() {
     before();
 
     monitor_test_tree = uri_list(FALSE, FALSE);
@@ -161,7 +161,7 @@ static void test_filemonitor_uriList_delete_file_under_watched_dir() {
     after();
 }
 
-static void test_filemonitor_uriList_delete_file_under_nonwatched_dir() {
+static void test_filemonitor_uriList_deleteFileUnderNonWatchedDir() {
     before();
 
     monitor_test_tree = uri_list(FALSE, FALSE);
@@ -202,11 +202,11 @@ static void test_filemonitor_uriList_delete_file_under_nonwatched_dir() {
 
 
 static gboolean file_monitor_tests(gpointer data) {
-    test_filemonitor_uriList_delete_file_under_root();
-    test_filemonitor_uriList_delete_nonwatched_file_under_root();
-    test_filemonitor_uriList_delete_nonwatched_file_under_empty_root();
-    test_filemonitor_uriList_delete_file_under_watched_dir();
-    test_filemonitor_uriList_delete_file_under_nonwatched_dir();
+    test_filemonitor_uriList_deleteFileUnderRoot();
+    test_filemonitor_uriList_deleteNonWatchedFileUnderRoot();
+    test_filemonitor_uriList_deleteNonWatchedFileUnderEmptyRoot();
+    test_filemonitor_uriList_deleteFileUnderWatchedDir();
+    test_filemonitor_uriList_deleteFileUnderNonWatchedDir();
 
     g_main_loop_quit((GMainLoop*)data);
     return FALSE;
